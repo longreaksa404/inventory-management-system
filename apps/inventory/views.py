@@ -18,7 +18,7 @@ from apps.inventory.permissions import ProductPermission, ProductActionPermissio
     StockTransactionPermission, LowStockAlertPermission
 from apps.inventory.models import Product
 
-
+# DIY filtering
 class SearchFilterOrderingMixin:
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
 
