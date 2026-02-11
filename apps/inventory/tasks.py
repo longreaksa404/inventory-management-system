@@ -3,7 +3,10 @@ from django.core.mail import send_mail
 from apps.inventory.models import Product
 from django.conf import settings
 
-
+# bind allow access self argument
+# autoretry_for is retry if fail by exception build in
+# retry_backoff is wait for minutes to retry again
+# max_retries try only 3 time
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=3)
 def notify_low_stock(self):
     low_stock_products = Product.objects.filter(quantity__lt=5)
