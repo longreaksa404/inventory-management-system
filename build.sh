@@ -19,9 +19,11 @@ User = get_user_model()
 username = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin')
 email = os.environ.get('DJANGO_SUPERUSER_EMAIL')
 password = os.environ.get('DJANGO_SUPERUSER_PASSWORD')
+# Default phone number to satisfy your model's requirement
+phone = os.environ.get('DJANGO_SUPERUSER_PHONE', '+85512345678')
 
 if not email or not password:
-    print("--- ERROR: DJANGO_SUPERUSER_EMAIL or PASSWORD not found in environment ---")
+    print("--- ERROR: DJANGO_SUPERUSER_EMAIL or PASSWORD not found ---")
 else:
     if not User.objects.filter(email=email).exists():
         print(f"--- Creating superuser for {email} ---")
@@ -30,17 +32,18 @@ else:
             username=username,
             password=password,
             first_name="Admin",
-            last_name="User"
+            last_name="User",
+            phone_number=phone
         )
         print("--- Superuser created successfully ---")
     else:
-        # If it exists, we update the password to match your current env var
-        print(f"--- Superuser {email} already exists. Updating password... ---")
+        print(f"--- Superuser {email} already exists. Updating password/phone... ---")
         u = User.objects.get(email=email)
         u.set_password(password)
+        u.phone_number = phone
         u.is_staff = True
         u.is_superuser = True
         u.save()
-        print("--- Password updated successfully ---")
+        print("--- User updated successfully ---")
 END
 fi
