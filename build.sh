@@ -31,8 +31,8 @@ else:
             email=email,
             username=username,
             password=password,
-            first_name="Admin",
-            last_name="User",
+            first_name="admin",
+            last_name="user",
             phone_number=phone
         )
         print("--- Superuser created successfully ---")
