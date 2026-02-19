@@ -9,6 +9,11 @@ ALLOWED_HOSTS = [
     "your-app-name.onrender.com"  # Replace with your actual Render URL
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.render.com",
+    "https://inventory-management-backend.onrender.com" # Change this to your actual Render URL
+]
+
 # automatically pull the Render host
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
@@ -48,3 +53,5 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 ROOT_URLCONF = "config.urls"
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
