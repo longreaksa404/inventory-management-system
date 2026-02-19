@@ -6,36 +6,39 @@ This system is designed around **real-world business workflows**, ensuring data 
 
 ---
 
-## 🔗 Quick Links
-* **Admin Dashboard:** [Production URL](https://inventory-management-backend-production-7584.up.railway.app/admin/)
-* **Interactive Docs:** [Swagger UI](https://inventory-management-backend-production-7584.up.railway.app/swagger/) | [Redoc](https://inventory-management-backend-production-7584.up.railway.app/redoc/)
-* **Use /api/v1/ Before Every Endpoints:** [Example Of Accounts URL](https://inventory-management-backend-production-7584.up.railway.app/api/v1/accounts/login/)
+## 🔗 Live Production Environment
+* **Admin Dashboard:** [https://inventory-management-backend.onrender.com/admin/](https://inventory-management-backend.onrender.com/admin/)
+* **Interactive Docs:** [Swagger UI](https://inventory-management-backend.onrender.com/swagger/) | [Redoc](https://inventory-management-backend.onrender.com/redoc/)
+* **API Versioning:** Use `/api/v1/` before all endpoints (e.g., `/api/v1/accounts/login/`).
 ---
 
 ## 🏗️ Architectural Highlights
 
 ### 1. Data Integrity & Transactions
-Inventory systems fail if stock levels go out of sync. I implemented **atomic database transactions** to ensure that stock deduction and transaction logging either succeed together or fail together-preventing "ghost" inventory.
+Inventory systems fail if stock levels go out of sync. I implemented **atomic database transactions** to ensure that stock deduction and transaction logging either succeed together or fail together—preventing "ghost" inventory.
 
 ### 2. Scalable RBAC (Role-Based Access Control)
-Instead of simple boolean flags, the system uses a structured role system:
+Instead of simple boolean flags, the system uses a structured role system managed via a custom User model:
 * **Admins:** Full system control.
 * **Managers:** Warehouse and stock oversight.
 * **Staff:** Operational tasks (orders, stock updates).
 
 ### 3. Async-First Background Tasks
-To keep the API responsive, heavy operations are offloaded to **Celery & Redis**:
+To keep the API responsive, heavy operations are designed for **Celery & Redis**:
 * **Email Notifications:** Dispatched via background workers.
 * **Stock Alerts:** Automated checks for low-stock items via Celery Beat.
 * **Audit Logging:** System-wide triggers for tracking every change.
 
 ---
 
-## 🛠 Tech Stack & Why I Chose Them
+## 🛠 Tech Stack & Infrastructure
 * **Django 5.2 & DRF:** Chosen for the robust ORM and mature security features required for high-stakes inventory data.
-* **PostgreSQL:** Essential for its support of complex relationships and ACID compliance.
-* **Celery + Redis:** To handle the distributed nature of modern backend services.
-* **Pytest:** Used for a comprehensive suite of **35 tests** covering Unit, Integration, and Async logic.
+* **Cloud Hosting:** Deployed on **Render** using a managed Web Service and automated build pipelines.
+* **PostgreSQL:** Production database managed by Render, ensuring ACID compliance for stock movements.
+* **Upstash Redis:** Cloud-native Redis instance used as the message broker for Celery tasks.
+* **Pytest:** Comprehensive suite covering Unit, Integration, and Async logic.
+
+
 
 ---
 
@@ -63,11 +66,6 @@ graph TD
 
 ## ⚙️ Engineering & Setup
 
-### Requirements
-- Docker (Optional but recommended)  
-- Python 3.12+  
-- Redis (for Celery)
-
 ### Local Development
 
 1. Clone & setup environment:
@@ -88,8 +86,15 @@ python manage.py migrate
 pytest  # Runs 35+ tests including domain logic and async task verification
 ```
 
-(If using Docker, see the repository's Docker configuration for recommended compose commands.)
+### Deployment Configuration
+The project is configured for seamless deployment on **Render** using a custom `build.sh` script that handles:
 
+* **Automatic dependency installation:** Uses `pip` to install requirements from `requirements.txt`.
+* **Database migrations:** Automatically runs `python manage.py migrate` to keep the production schema in sync.
+* **Static file collection:** Executes `collectstatic` for serving the Django Admin and API documentation CSS/JS.
+* **Automated superuser provisioning:** Uses environment variables to safely create or update the admin account during the first deploy.
+
+  
 ## 🎯 Project Purpose
 
 This repository serves as a demonstration of production-level backend engineering. It focuses on solving hard problems that matter to real systems - handling race conditions, ensuring data consistency, and providing fine-grained security - and is intended as a foundation for small-to-medium enterprise (SME) inventory systems.
