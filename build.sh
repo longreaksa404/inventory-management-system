@@ -17,7 +17,7 @@ sys.path.append(os.getcwd())
 
 try:
     # Import using the full path if necessary
-    from accounts.models import CustomUser
+    from apps.accounts.models import CustomUser
 
     username = os.environ.get('DJANGO_SUPERUSER_USERNAME')
     email = os.environ.get('DJANGO_SUPERUSER_EMAIL')
