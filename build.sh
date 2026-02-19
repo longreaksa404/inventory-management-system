@@ -6,39 +6,41 @@ pip install -r requirements.txt
 python manage.py collectstatic --no-input
 python manage.py migrate
 
-# Force create superuser using a Python script
+# Create superuser if the flag is set
 if [ "$CREATE_SUPERUSER" = "True" ]; then
   python manage.py shell << END
 import os
 import sys
+from django.contrib.auth import get_user_model
 
-# Ensure the current directory is in the path
-sys.path.append(os.getcwd())
+User = get_user_model()
 
-try:
-    # Import using the full path if necessary
-    from apps.accounts.models import CustomUser
+# Fetch variables from the environment
+username = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin')
+email = os.environ.get('DJANGO_SUPERUSER_EMAIL')
+password = os.environ.get('DJANGO_SUPERUSER_PASSWORD')
 
-    username = os.environ.get('DJANGO_SUPERUSER_USERNAME')
-    email = os.environ.get('DJANGO_SUPERUSER_EMAIL')
-    password = os.environ.get('DJANGO_SUPERUSER_PASSWORD')
-    first_name = os.environ.get('DJANGO_SUPERUSER_FIRST_NAME', 'Admin')
-    last_name = os.environ.get('DJANGO_SUPERUSER_LAST_NAME', 'User')
-    phone = os.environ.get('DJANGO_SUPERUSER_PHONE_NUMBER', '+85512345678')
-
-    if not CustomUser.objects.filter(email=email).exists():
-        CustomUser.objects.create_superuser(
+if not email or not password:
+    print("--- ERROR: DJANGO_SUPERUSER_EMAIL or PASSWORD not found in environment ---")
+else:
+    if not User.objects.filter(email=email).exists():
+        print(f"--- Creating superuser for {email} ---")
+        User.objects.create_superuser(
             email=email,
             username=username,
             password=password,
-            first_name=first_name,
-            last_name=last_name,
-            phone_number=phone
+            first_name="Admin",
+            last_name="User"
         )
         print("--- Superuser created successfully ---")
     else:
-        print("--- Superuser already exists ---")
-except Exception as e:
-    print(f"--- Error creating superuser: {e} ---")
+        # If it exists, we update the password to match your current env var
+        print(f"--- Superuser {email} already exists. Updating password... ---")
+        u = User.objects.get(email=email)
+        u.set_password(password)
+        u.is_staff = True
+        u.is_superuser = True
+        u.save()
+        print("--- Password updated successfully ---")
 END
 fi
