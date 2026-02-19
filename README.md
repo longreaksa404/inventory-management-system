@@ -7,7 +7,7 @@ This system is designed around **real-world business workflows**, ensuring data 
 ---
 
 ## 🔗 Live Production Environment
-* **Admin Dashboard:** [https://inventory-management-backend.onrender.com/admin/](https://inventory-management-backend.onrender.com/admin/)
+* **Admin Dashboard:** [https://inventory-management-backend-g3e7.onrender.com/admin/](https://inventory-management-backend-g3e7.onrender.com/admin/)
 * **Interactive Docs:** [Swagger UI](https://inventory-management-backend.onrender.com/swagger/) | [Redoc](https://inventory-management-backend.onrender.com/redoc/)
 * **API Versioning:** Use `/api/v1/` before all endpoints (e.g., `/api/v1/accounts/login/`).
 ---
