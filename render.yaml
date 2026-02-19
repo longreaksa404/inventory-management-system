@@ -1,6 +1,6 @@
 databases:
   - name: inventory-db
-    plan: free
+    plan: free # Creates the required database
 
 services:
   - type: web
@@ -16,7 +16,11 @@ services:
         fromDatabase:
           name: inventory-db
           property: connectionString
+      - key: REDIS_URL
+        sync: false # Required configuration: Render will prompt you for your Upstash URL
+      - key: CELERY_BROKER_URL
+        sync: false # Also required for your Celery setup
       - key: SECRET_KEY
         generateValue: true
-      - key: REDIS_URL
-        sync: false # Provide this manually in the Dashboard for Upstash
+      - key: DEBUG
+        value: "False"
