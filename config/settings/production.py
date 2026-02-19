@@ -4,7 +4,15 @@ import dj_database_url
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['*', "inventory-management-backend-production-7584.up.railway.app"]
+ALLOWED_HOSTS = [
+    ".render.com",
+    "your-app-name.onrender.com"  # Replace with your actual Render URL
+]
+
+# automatically pull the Render host
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 DATABASES = {
     'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))}
