@@ -40,6 +40,7 @@ class PurchaseOrder(BaseOrder):
     expected_date = models.DateField(null=True, blank=True)
 
     class Meta:
+        # custom permissions
         permissions = [
             ("confirm_purchase_order", "Can confirm purchase orders"),
             ("receive_purchase_order", "Can receive purchase orders"),
