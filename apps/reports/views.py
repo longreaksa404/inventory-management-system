@@ -19,17 +19,12 @@ from apps.reports.serializers import (
 
 
 class InventoryValueReportView(APIView):
-    """
-    GET /api/v1/reports/inventory-value/
-    Returns total inventory valuation (price × quantity).
-    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         products = Product.objects.all()
         total_value = sum([p.price * p.quantity for p in products])
 
-        # Read-only: just return snapshot data, don’t persist every GET
         snapshot_data = {
             "warehouse": None,
             "total_value": total_value,
@@ -42,17 +37,12 @@ class InventoryValueReportView(APIView):
 
 
 class LowStockReportView(APIView):
-    """
-    GET /api/v1/reports/low-stock/
-    Returns products below their reorder levels per warehouse (read-only).
-    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         alerts = []
 
         for product in Product.objects.all():
-            # Purchased per warehouse
             purchased = (
                 PurchaseOrderItem.objects
                 .filter(product=product)
@@ -60,7 +50,6 @@ class LowStockReportView(APIView):
                 .annotate(total_purchased=Sum('quantity'))
             )
 
-            # Sold per warehouse
             sold = (
                 SaleOrderItem.objects
                 .filter(product=product)
@@ -91,10 +80,6 @@ class LowStockReportView(APIView):
 
 
 class CategorySummaryReportView(APIView):
-    """
-    GET /api/v1/reports/category-summary/
-    Returns summary of inventory grouped by category (read-only).
-    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -117,10 +102,6 @@ class CategorySummaryReportView(APIView):
 
 
 class TransactionHistoryReportView(APIView):
-    """
-    GET /api/v1/reports/transaction-history/
-    Returns audit trail of purchase and sales orders (read-only).
-    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
