@@ -1,29 +1,21 @@
-# Python
 __pycache__/
 *.pyc
 
-# Environment
 .env
 venv/
 .env.*
 
-# Django
 db.sqlite3
 
-# Editor
 .idea/
 .vscode/
 
-# Logs
 logs/
 *.log
 
-# pytest
 .pytest_cache/
 
-# Coverage
 .coverage
 htmlcov/
 
-# OS
 .DS_Store
