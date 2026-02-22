@@ -21,7 +21,7 @@ def notify_low_stock(self):
         subject="Low Stock Alert",
         message=message,
         from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=["admin@gmail.com"],
+        recipient_list=["longreak3@gmail.com"],
     )
 
     return f"Low stock notification sent for {low_stock_products.count()} products."
