@@ -52,12 +52,6 @@ CELERY_BROKER_URL = os.environ.get("REDIS_URL")
 CELERY_RESULT_BACKEND = os.environ.get("REDIS_URL")
 CELERY_TASK_ALWAYS_EAGER = False
 CELERY_TASK_EAGER_PROPAGATES = True
-CELERY_BROKER_USE_SSL = {
-    'ssl_cert_reqs': None
-}
-CELERY_REDIS_BACKEND_USE_SSL = {
-    'ssl_cert_reqs': None
-}
 
 if CELERY_BROKER_URL and CELERY_BROKER_URL.startswith('rediss://'):
     CELERY_BROKER_USE_SSL = {
