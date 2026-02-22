@@ -10,6 +10,8 @@ This system is designed around **real-world business workflows**, ensuring data 
 * **Admin Dashboard:** [https://inventory-management-backend-g3e7.onrender.com/admin/](https://inventory-management-backend-g3e7.onrender.com/admin/)
 * **Interactive Docs:** [Swagger UI](https://inventory-management-backend-g3e7.onrender.com/swagger/) | [Redoc](https://inventory-management-backend-g3e7.onrender.com/redoc/)
 * **API Versioning:** Use `/api/v1/` before all endpoints (e.g., `/api/v1/accounts/login/`).
+
+> ⚡ **Note:** Hosted on Render's free tier. The service "sleeps" after inactivity and may take **30-60 seconds** to wake up on the first load.
 ---
 
 ## 🏗️ Architectural Highlights
