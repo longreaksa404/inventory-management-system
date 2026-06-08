@@ -1,5 +1,5 @@
-from statistics import quantiles
-from decimal import Decimal # exact values
+# apps/inventory/serializers.py
+from decimal import Decimal
 from rest_framework import serializers
 from .models import Category, Product, StockTransaction, LowStockAlert
 
@@ -12,7 +12,6 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    # StringRelatedField to show __str__ value
     category_name = serializers.StringRelatedField(source='category', read_only=True)
     price = serializers.DecimalField(
         max_digits=10,
@@ -37,15 +36,21 @@ class StockTransactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StockTransaction
-        fields = ['id', 'product', 'product_name', 'warehouse', 'warehouse_name', 'performed_by', 'performed_by_name',
-                  'transaction_type', 'quantity', 'notes', 'timestamp']
+        fields = [
+            'id', 'product', 'product_name',
+            'warehouse', 'warehouse_name',
+            'performed_by', 'performed_by_name',
+            'transaction_type', 'quantity', 'notes', 'timestamp'
+        ]
         read_only_fields = ['performed_by', 'timestamp']
 
     def create(self, validated_data):
-        user = self.context['request'].user # get current user if auth allowed
-        validated_data['performed_by'] = user # who create
+        user = self.context['request'].user
+        validated_data['performed_by'] = user
+        # FIX: StockTransaction.save() already calls apply_transaction() internally.
+        # Calling it again here caused every stock movement to be applied twice.
+        # super().create() triggers save() → apply_transaction() — that's enough.
         transaction = super().create(validated_data)
-        transaction.apply_transaction()
         return transaction
 
 
@@ -61,7 +66,9 @@ class StockHistorySerializer(serializers.ModelSerializer):
     product_name = serializers.StringRelatedField(source='product', read_only=True)
     warehouse_name = serializers.StringRelatedField(source='warehouse', read_only=True)
     performed_by_name = serializers.StringRelatedField(source='performed_by', read_only=True)
-    transaction_type_display = serializers.CharField(source='get_transaction_type_display', read_only=True)
+    transaction_type_display = serializers.CharField(
+        source='get_transaction_type_display', read_only=True
+    )
 
     class Meta:
         model = StockTransaction
