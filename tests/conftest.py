@@ -1,3 +1,4 @@
+# tests/conftest.py
 import pytest
 from django.contrib.auth.hashers import make_password
 from rest_framework.test import APIClient
@@ -11,6 +12,12 @@ from apps.orders.models import PurchaseOrder, PurchaseOrderItem, SaleOrder, Sale
 
 User = get_user_model()
 
+# ---------------------------------------------------------------------------
+# User fixtures
+# NOTE: Role values must be lowercase to match CustomUser.ROLE_CHOICES:
+#   ('admin', 'Admin'), ('manager', 'Manager'), ('staff', 'Staff'), ('customer', 'Customer')
+# Phone numbers must match the +855xxxxxxxx validator regex.
+# ---------------------------------------------------------------------------
 
 @pytest.fixture
 def admin_user(db):
@@ -18,9 +25,14 @@ def admin_user(db):
         username="admin",
         email="admin@example.com",
         password=make_password("adminadmin"),
-        role="Admin",
+        first_name="Admin",
+        last_name="User",
+        # FIX: valid +855 format required by phone_validator regex
+        phone_number="+85512345678",
+        # FIX: lowercase to match ROLE_CHOICES
+        role="admin",
         is_staff=True,
-        is_superuser=True
+        is_superuser=True,
     )
 
 
@@ -30,8 +42,11 @@ def manager_user(db):
         username="manager",
         email="manager@example.com",
         password=make_password("password123"),
-        role="Manager",
-        is_staff=True
+        first_name="Manager",
+        last_name="User",
+        phone_number="+85512345679",
+        role="manager",  # FIX: lowercase
+        is_staff=True,
     )
 
 
@@ -41,8 +56,11 @@ def staff_user(db):
         username="staff",
         email="staff@example.com",
         password=make_password("password123"),
-        role="Staff",
-        is_staff=False
+        first_name="Staff",
+        last_name="User",
+        phone_number="+85512345680",
+        role="staff",  # FIX: lowercase
+        is_staff=False,
     )
 
 
@@ -53,17 +71,37 @@ def normal_user(db):
         email="user@example.com",
         first_name="Test",
         last_name="User",
-        phone_number="012345678",
+        phone_number="+85512345681",
         password=make_password("password123"),
-        role="User"
+        role="staff",
     )
 
+
+# FIX: Customer was referencing a non-existent Customer model.
+# In this system, customers are CustomUser instances with role="customer".
+@pytest.fixture
+def customer(db):
+    return CustomUser.objects.create(
+        username="customer",
+        email="customer@example.com",
+        first_name="John",
+        last_name="Doe",
+        phone_number="+85512345682",
+        password=make_password("password123"),
+        role="customer",
+        is_staff=False,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Inventory fixtures
+# ---------------------------------------------------------------------------
 
 @pytest.fixture
 def category(db):
     return Category.objects.create(
         name="Electronics",
-        description="Electronic gadgets and devices"
+        description="Electronic gadgets and devices",
     )
 
 
@@ -75,7 +113,7 @@ def product(db, category):
         price=1000,
         quantity=10,
         status="active",
-        category=category
+        category=category,
     )
 
 
@@ -87,36 +125,45 @@ def stock_transaction_in(db, product, admin_user, warehouse):
         transaction_type="IN",
         quantity=5,
         performed_by=admin_user,
-        notes="Initial stock"
+        notes="Initial stock",
     )
 
+
+# ---------------------------------------------------------------------------
+# Warehouse fixture
+# FIX: Warehouse.email is required and unique; Warehouse.code is required and unique.
+# Previous fixture omitted both, causing IntegrityError on save.
+# ---------------------------------------------------------------------------
 
 @pytest.fixture
 def warehouse(db):
     return Warehouse.objects.create(
         name="Main Warehouse",
-        location="Phnom Penh"
+        code="WH001",                        # FIX: required unique field
+        location="Phnom Penh",
+        email="warehouse@example.com",        # FIX: required unique field
     )
 
+
+# ---------------------------------------------------------------------------
+# Supplier fixture
+# FIX: contact_name is required and unique in the Supplier model.
+# ---------------------------------------------------------------------------
 
 @pytest.fixture
 def supplier(db):
     return Supplier.objects.create(
         name="Tech Supplier",
+        contact_name="Supplier Contact",      # FIX: required field was missing
         email="supplier@example.com",
-        phone="012345678",
-        address="Phnom Penh"
+        phone="+85512345683",
+        address="Phnom Penh",
     )
 
 
-@pytest.fixture
-def customer(db):
-    return Customer.objects.create(
-        name="John Doe",
-        email="john@example.com",
-        phone="012345678"
-    )
-
+# ---------------------------------------------------------------------------
+# Order fixtures
+# ---------------------------------------------------------------------------
 
 @pytest.fixture
 def purchase_order(db, supplier, admin_user, warehouse):
@@ -125,7 +172,7 @@ def purchase_order(db, supplier, admin_user, warehouse):
         warehouse=warehouse,
         expected_date="2026-01-01",
         status="PENDING",
-        created_by=admin_user
+        created_by=admin_user,
     )
 
 
@@ -135,18 +182,19 @@ def purchase_order_item(db, purchase_order, product):
         order=purchase_order,
         product=product,
         quantity=5,
-        unit_price=product.price
+        unit_price=product.price,
     )
 
 
 @pytest.fixture
-def sales_order(db, staff_user, normal_user, warehouse):
+def sales_order(db, staff_user, customer, warehouse):
+    # FIX: customer fixture now returns a real CustomUser with role="customer"
     return SaleOrder.objects.create(
-        customer=normal_user,
+        customer=customer,
         warehouse=warehouse,
         order_date="2026-01-01",
         status="PENDING",
-        created_by=staff_user
+        created_by=staff_user,
     )
 
 
@@ -156,9 +204,13 @@ def sales_order_item(db, sales_order, product):
         order=sales_order,
         product=product,
         quantity=2,
-        unit_price=product.price
+        unit_price=product.price,
     )
 
+
+# ---------------------------------------------------------------------------
+# API client fixtures
+# ---------------------------------------------------------------------------
 
 @pytest.fixture
 def api_client():
@@ -167,6 +219,6 @@ def api_client():
 
 @pytest.fixture
 def login_api_client(admin_user):
-    api_client = APIClient()
-    api_client.force_authenticate(user=admin_user)
-    return api_client
+    client = APIClient()
+    client.force_authenticate(user=admin_user)
+    return client
