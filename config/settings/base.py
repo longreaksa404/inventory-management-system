@@ -1,3 +1,4 @@
+# config/settings/base.py
 from datetime import timedelta
 from pathlib import Path
 import environ
@@ -19,7 +20,10 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL', 'postgres://postgres:postgres@localhost:5432/inventory_db')
+        default=os.environ.get(
+            'DATABASE_URL',
+            'postgres://postgres:postgres@localhost:5432/inventory_db'
+        )
     )
 }
 
@@ -90,6 +94,10 @@ REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
     ],
+    # FIX: No pagination was configured, so list endpoints returned every
+    # record in the database. With thousands of products this causes timeouts.
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 50,
 }
 
 SIMPLE_JWT = {
@@ -97,8 +105,15 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
 }
 
+# Local dev default — production.py overrides this with a hard require
 CELERY_BROKER_URL = env("REDIS_URL", default="redis://127.0.0.1:6379/0")
 CELERY_RESULT_BACKEND = env("REDIS_URL", default="redis://127.0.0.1:6379/0")
+
+# FIX: hard-coded personal emails moved to settings so they can be
+# configured per environment without touching source code.
+ADMIN_NOTIFICATION_EMAIL = env(
+    "ADMIN_NOTIFICATION_EMAIL", default="admin@example.com"
+)
 
 LOGGING = {
     "version": 1,
@@ -136,4 +151,3 @@ TEMPLATES = [
         },
     },
 ]
-

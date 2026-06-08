@@ -1,7 +1,10 @@
+# apps/suppliers/models.py
 from django.db import models
 
-from apps.inventory.models import Product, StockTransaction
-from apps.warehouses.models import Warehouse
+# FIX: The original file imported Product, StockTransaction (from inventory)
+# and Warehouse (from warehouses) — none of which are used in the Supplier
+# model itself. These dead imports created unnecessary coupling and risked
+# circular import errors as the codebase grows (inventory → suppliers → inventory).
 
 
 class Supplier(models.Model):
@@ -18,5 +21,3 @@ class Supplier(models.Model):
 
     def __str__(self):
         return self.name
-
-

@@ -1,3 +1,4 @@
+# apps/warehouses/models.py
 from django.db import models
 
 
@@ -14,3 +15,8 @@ class Warehouse(models.Model):
 
     class Meta:
         ordering = ['name']
+
+    # FIX: missing __str__ caused Django admin and serializer string fields to
+    # show "Warehouse object (1)" instead of the warehouse name.
+    def __str__(self):
+        return self.name
