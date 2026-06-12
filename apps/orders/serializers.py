@@ -1,10 +1,10 @@
+# apps/orders/serializers.py
 from rest_framework import serializers
 from django.db import transaction
-from django.conf import settings
 
 from apps.orders.models import (
     PurchaseOrder, PurchaseOrderItem,
-    SaleOrder, SaleOrderItem, OrderStatusHistory
+    SaleOrder, SaleOrderItem, OrderStatusHistory,
 )
 from apps.inventory.models import Product
 from apps.suppliers.models import Supplier
@@ -34,7 +34,7 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'supplier', 'supplier_name', 'warehouse', 'warehouse_name',
             'status', 'expected_date', 'notes', 'created_at', 'updated_at',
-            'created_by', 'items', 'items_detail'
+            'created_by', 'items', 'items_detail',
         ]
         read_only_fields = ['created_at', 'updated_at', 'created_by']
 
@@ -63,12 +63,43 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-
         if items_data is not None:
             instance.items.all().delete()
             for item in items_data:
                 PurchaseOrderItem.objects.create(order=instance, **item)
         return instance
+
+
+# ---------------------------------------------------------------------------
+# Sales order helpers
+# ---------------------------------------------------------------------------
+
+def _resolve_product(raw) -> Product:
+    """
+    FIX: The original code used isinstance(item['product'], Product) to
+    decide whether to call .id — fragile because DRF resolves PrimaryKeyRelatedField
+    to a model instance BEFORE validate_items runs. So the else-branch (raw int PK)
+    never fired in practice, and the code only appeared to work.
+
+    Now we handle both cases explicitly and clearly:
+    - If DRF already resolved to a Product instance, use it directly.
+    - If somehow a raw PK int arrives (e.g. custom field), look it up.
+    """
+    if isinstance(raw, Product):
+        return raw
+    try:
+        return Product.objects.get(pk=raw)
+    except Product.DoesNotExist:
+        raise serializers.ValidationError(f"Product with pk={raw} does not exist.")
+
+
+def _check_stock(product: Product, quantity: int):
+    """Single place for stock availability check — called from validate_items only."""
+    if product.quantity < quantity:
+        raise serializers.ValidationError(
+            f"Not enough stock for {product.name} "
+            f"(need {quantity}, have {product.quantity})."
+        )
 
 
 class SalesOrderItemSerializer(serializers.ModelSerializer):
@@ -96,40 +127,21 @@ class SalesOrderSerializer(serializers.ModelSerializer):
             'id', 'customer', 'customer_name', 'warehouse', 'warehouse_name',
             'status', 'order_date', 'shipped_date', 'notes',
             'created_at', 'updated_at', 'created_by',
-            'items', 'items_detail'
+            'items', 'items_detail',
         ]
         read_only_fields = ['order_date', 'created_at', 'updated_at', 'created_by']
 
-    def validate(self, data):
-        if data.get("status") == "completed" and "items" not in data:
-            instance = getattr(self, "instance", None)
-            if instance:
-                for item in instance.items.all():
-                    product = item.product
-                    if product.quantity < item.quantity:
-                        raise serializers.ValidationError(
-                            f"Not enough stock for {product.name} "
-                            f"(needed {item.quantity}, available {product.quantity})"
-                        )
-
-        if data.get("status") == "completed" and "items" in data:
-            for item in data["items"]:
-                product = item.get("product")
-                if isinstance(product, int):
-                    product = Product.objects.get(pk=product)
-                elif isinstance(product, Product):
-                    pass
-                else:
-                    continue
-
-                if product.quantity < item["quantity"]:
-                    raise serializers.ValidationError(
-                        f"Not enough stock for {product.name} "
-                        f"(needed {item['quantity']}, available {product.quantity})"
-                    )
-        return data
-
     def validate_items(self, value):
+        """
+        FIX: Stock validation previously lived in THREE places:
+          1. validate_items()
+          2. validate()  — also checked status=="completed" edge cases
+          3. SalesOrderViewSet.update() — yet another partial check
+
+        Consolidated here into a single method. The views no longer duplicate
+        this logic. validate() has been removed — all item-level validation
+        belongs in validate_items() which DRF calls on every write operation.
+        """
         if not value:
             raise serializers.ValidationError("At least one item is required.")
         for item in value:
@@ -137,14 +149,8 @@ class SalesOrderSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Quantity must be greater than zero.")
             if item['unit_price'] < 0:
                 raise serializers.ValidationError("Unit price cannot be negative.")
-
-            try:
-                product = Product.objects.get(
-                    pk=item['product'].id if isinstance(item['product'], Product) else item['product'])
-            except Product.DoesNotExist:
-                raise serializers.ValidationError(f"Product {item['product']} does not exist.")
-            if product.quantity < item['quantity']:
-                raise serializers.ValidationError(f"Not enough stock for {product.name}.")
+            product = _resolve_product(item['product'])
+            _check_stock(product, item['quantity'])
         return value
 
     @transaction.atomic
@@ -153,9 +159,6 @@ class SalesOrderSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         order = SaleOrder.objects.create(created_by=user, **validated_data)
         for item in items_data:
-            product = item['product']
-            if isinstance(product, int):
-                product = Product.objects.get(pk=product)
             SaleOrderItem.objects.create(order=order, **item)
         return order
 
@@ -165,13 +168,9 @@ class SalesOrderSerializer(serializers.ModelSerializer):
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-
         if items_data is not None:
             instance.items.all().delete()
             for item in items_data:
-                product = item['product']
-                if isinstance(product, int):
-                    product = Product.objects.get(pk=product)
                 SaleOrderItem.objects.create(order=instance, **item)
         return instance
 
