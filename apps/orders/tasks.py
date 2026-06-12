@@ -1,3 +1,4 @@
+# apps/orders/tasks.py
 from celery import shared_task
 from django.db import transaction
 from django.core.exceptions import ValidationError
@@ -13,9 +14,6 @@ from django.utils import timezone
 )
 def process_sales_order_shipping(self, order_id, user_id):
     from apps.orders.models import SaleOrder, OrderStatusHistory
-    from django.contrib.auth import get_user_model
-
-    User = get_user_model()
 
     try:
         with transaction.atomic():
@@ -27,11 +25,12 @@ def process_sales_order_shipping(self, order_id, user_id):
             )
 
             if order.status != "confirmed":
-                print(f"⚠️ Order {order.id} already processed or invalid state: {order.status}")
                 return "already_processed"
 
             old_status = order.status
 
+            # SaleOrder.ship() handles stock deduction + LowStockAlert creation
+            # atomically with select_for_update(). Do not repeat that logic here.
             order.ship()
 
             OrderStatusHistory.objects.create(
@@ -43,29 +42,35 @@ def process_sales_order_shipping(self, order_id, user_id):
                 changed_at=timezone.now(),
             )
 
-            print(f"✅ Sales order {order.id} shipped successfully")
-
             return "shipped"
 
     except SaleOrder.DoesNotExist:
-        print(f"❌ Order {order_id} does not exist")
         return "not_found"
 
     except ValidationError as e:
-        print(f"❌ Shipping failed for order {order_id}: {e}")
-
+        # FIX: previously cancelled the order silently with no audit trail.
+        # Now we record the cancellation in OrderStatusHistory so it's
+        # visible in the admin and API — critical for debugging and ops.
         with transaction.atomic():
             try:
+                from apps.orders.models import OrderStatusHistory
                 order = SaleOrder.objects.select_for_update().get(id=order_id)
+                old = order.status
                 order.status = "cancelled"
                 order.save(update_fields=["status"])
+                OrderStatusHistory.objects.create(
+                    order_type="sale",
+                    order_id=order.id,
+                    old_status=old,
+                    new_status="cancelled",
+                    changed_by_id=user_id,
+                    changed_at=timezone.now(),
+                )
             except Exception:
                 pass
-
         raise
 
-    except Exception as e:
-        print(f"⚠️ Temporary error shipping order {order_id}, retrying: {e}")
+    except Exception:
         raise
 
 
@@ -76,7 +81,6 @@ def process_sales_order_shipping(self, order_id, user_id):
 )
 def process_purchase_order_receiving(self, order_id, user_id):
     from apps.orders.models import PurchaseOrder, OrderStatusHistory
-    from apps.inventory.models import Product
     from apps.accounts.models import CustomUser
 
     with transaction.atomic():
@@ -88,26 +92,23 @@ def process_purchase_order_receiving(self, order_id, user_id):
         )
 
         if order.status != "confirmed":
-            return
+            return "already_processed"
 
         user = CustomUser.objects.get(id=user_id)
 
-        for item in order.items.select_related("product"):
-            product = Product.objects.select_for_update().get(id=item.product_id)
-            product.quantity += item.quantity
-            product.save(update_fields=["quantity"])
-
-            item.line_status = "received"
-            item.save(update_fields=["line_status"])
-
-        old_status = order.status
-        order.status = "received"
-        order.save(update_fields=["status"])
+        # FIX: The original task manually looped over items and added stock,
+        # duplicating the logic inside PurchaseOrder.receive(). That caused
+        # double stock addition when both paths ran. Now we delegate entirely
+        # to the model method which owns this responsibility.
+        # receive() sets status = "received" and saves internally.
+        order.receive()
 
         OrderStatusHistory.objects.create(
             order_type="purchase",
             order_id=order.id,
-            old_status=old_status,
+            old_status="confirmed",
             new_status="received",
             changed_by=user,
         )
+
+        return "received"
