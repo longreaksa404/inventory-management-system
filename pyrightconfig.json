@@ -1,0 +1,19 @@
+{
+  "include": [
+    "apps",
+    "config",
+    "api",
+    "tests"
+  ],
+
+  "venvPath": "C:/Users/acer/.virtualenvs",
+  "venv": "inventory-management-backend-lAitlqmP",
+
+  "pythonVersion": "3.11",
+  "typeCheckingMode": "basic",
+
+  "reportMissingImports": "warning",
+  "reportMissingModuleSource": "none",
+  "reportAttributeAccessIssue": "none",
+  "reportOperatorIssue": "none"
+}
