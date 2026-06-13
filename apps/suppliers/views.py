@@ -1,10 +1,16 @@
+# apps/suppliers/views.py
 from rest_framework import generics, permissions
+
 from apps.inventory.views import SearchFilterOrderingMixin
 from .models import Supplier
 from .serializers import SupplierSerializer
 
 
-class SupplierListCreateView(generics.ListCreateAPIView, SearchFilterOrderingMixin):
+class SupplierListCreateView(SearchFilterOrderingMixin, generics.ListCreateAPIView):
+    # FIX: Was (generics.ListCreateAPIView, SearchFilterOrderingMixin) — wrong MRO.
+    # Python resolves attributes left-to-right in the MRO, so the mixin's
+    # filter_backends would be shadowed by DRF's class-level default.
+    # Mixin must come first so its attributes win.
     queryset = Supplier.objects.all()
     serializer_class = SupplierSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
@@ -19,7 +25,3 @@ class SupplierDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Supplier.objects.all()
     serializer_class = SupplierSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-
-
-
-
