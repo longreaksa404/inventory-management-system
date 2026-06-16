@@ -33,3 +33,6 @@ CELERY_RESULT_BACKEND = "cache+memory://"
 SECURE_SSL_REDIRECT = False
 
 SWAGGER_USE_COMPAT_RENDERERS = False
+
+# Allow all origins locally so the React dev server (any port) can call Django
+CORS_ALLOW_ALL_ORIGINS = True

@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     "rest_framework",
+    "corsheaders",
     "drf_yasg",
     "django_filters",
     "rest_framework_simplejwt",
@@ -54,6 +55,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -86,6 +88,26 @@ CSRF_TRUSTED_ORIGINS = [
 
 AUTH_USER_MODEL = "accounts.CustomUser"
 
+# ---------------------------------------------------------------------------
+# CORS
+# CORS_ALLOWED_ORIGINS is the strict production allowlist, populated via env.
+# Local dev overrides this with CORS_ALLOW_ALL_ORIGINS = True (see local.py).
+# We use JWT via Authorization header — not cookies — so credentials = False.
+# ---------------------------------------------------------------------------
+CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
+CORS_ALLOW_CREDENTIALS = False
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -94,8 +116,6 @@ REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
     ],
-    # FIX: No pagination was configured, so list endpoints returned every
-    # record in the database. With thousands of products this causes timeouts.
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 50,
 }
@@ -105,12 +125,9 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
 }
 
-# Local dev default — production.py overrides this with a hard require
 CELERY_BROKER_URL = env("REDIS_URL", default="redis://127.0.0.1:6379/0")
 CELERY_RESULT_BACKEND = env("REDIS_URL", default="redis://127.0.0.1:6379/0")
 
-# FIX: hard-coded personal emails moved to settings so they can be
-# configured per environment without touching source code.
 ADMIN_NOTIFICATION_EMAIL = env(
     "ADMIN_NOTIFICATION_EMAIL", default="admin@example.com"
 )
