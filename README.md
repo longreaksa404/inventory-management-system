@@ -100,3 +100,4 @@ The project is configured for seamless deployment on **Render** using a custom `
 ## 🎯 Project Purpose
 
 This repository serves as a demonstration of production-level backend engineering. It focuses on solving hard problems that matter to real systems - handling race conditions, ensuring data consistency, and providing fine-grained security - and is intended as a foundation for small-to-medium enterprise (SME) inventory systems.
+"# deploy" 
