@@ -109,22 +109,58 @@ EMAIL_HOST_PASSWORD
 
 ### build.sh Fixed
 - Added `python manage.py migrate --no-input`
-- Replaced unreliable heredoc (`<< END`) with `python manage.py shell -c` for superuser creation
+- Replaced unreliable heredoc with `python manage.py shell -c` for superuser creation
 - Superuser is created automatically on every deploy if `CREATE_SUPERUSER=True` and user doesn't already exist
 
 ### Verified Working
 - ✅ Swagger UI accessible at `/swagger/`
 - ✅ Admin panel accessible at `/admin/`
 - ✅ Superuser login works
-- ✅ All Django apps visible in admin (Accounts, Inventory, Orders, Periodic Tasks, Reports, Suppliers, Warehouses)
+- ✅ All Django apps visible in admin
 - ✅ Migrations applied successfully on fresh database
+
+---
+
+## ✅ What Was Completed — Session 3 (CORS)
+
+### CORS Added for React Frontend
+
+**Package installed:** `django-cors-headers==4.9.0`
+
+**Files changed:**
+
+| File | Change |
+|---|---|
+| `requirements.txt` | Added `django-cors-headers==4.9.0` and `dj-database-url==3.1.2` |
+| `config/settings/base.py` | Added `corsheaders` to `INSTALLED_APPS`, `CorsMiddleware` to `MIDDLEWARE` (before `CommonMiddleware`), and CORS config block |
+| `config/settings/local.py` | Added `CORS_ALLOW_ALL_ORIGINS = True` for local dev |
+| `config/settings/production.py` | Added `CORS_ALLOWED_ORIGINS` from env + `CORS_ALLOWED_ORIGIN_REGEXES` for Vercel preview deploys |
+
+**CORS design decisions:**
+- `CORS_ALLOW_CREDENTIALS = False` — JWT goes in `Authorization` header, not cookies; no credentials needed
+- `CORS_ALLOW_ALL_ORIGINS = True` only in `local.py` — never bleeds to production
+- `CORS_ALLOWED_ORIGIN_REGEXES` covers `*.vercel.app` so Vercel preview deployments don't need manual allowlist updates
+- `CORS_ALLOWED_ORIGINS` read from env var on Render — update once Vercel URL is known
+
+**Render env var to add once frontend is deployed:**
+```
+CORS_ALLOWED_ORIGINS=https://your-app.vercel.app
+```
+
+**Virtualenv situation:**
+- New virtualenv created at `C:\Users\acer\.virtualenvs\inventory-management-system-y9v2OP1d` (Python 3.11.4)
+- Old virtualenv at `inventory-management-backend-lAitlqmP` is now unused — can be deleted
+- Pipfile still says `python_version = "3.12"` — harmless warning, Django runs fine on 3.11
+- `dj-database-url` was missing from `requirements.txt` — now added
+
+**Verified:** `python manage.py check` returns `System check identified no issues (0 silenced)`
 
 ---
 
 ## 🗂️ Project Structure
 
 ```
-inventory-management-system/    ← renamed from inventory-management-backend
+inventory-management-system/
 ├── apps/
 │   ├── accounts/       # CustomUser, JWT auth, role-based access
 │   ├── core/           # Base permissions, shared utilities
@@ -135,20 +171,27 @@ inventory-management-system/    ← renamed from inventory-management-backend
 │   └── warehouses/     # Warehouse model
 ├── config/
 │   └── settings/
-│       ├── base.py
-│       ├── local.py        # SQLite, console email
+│       ├── base.py         # CORS config lives here
+│       ├── local.py        # CORS_ALLOW_ALL_ORIGINS = True
 │       ├── development.py
 │       ├── test.py         # In-memory SQLite, locmem email
-│       └── production.py
+│       └── production.py   # CORS_ALLOWED_ORIGINS + regex for Vercel
+├── docs/
+│   ├── PROJECT_HANDOFF.md  # This file
+│   ├── NEXT_STEPS.md
+│   ├── PROJECT_PLAN.md
+│   └── PROJECT_SCOPE.md
 ├── tests/
 │   ├── api/
 │   └── domain/
 ├── api/urls.py
-├── build.sh            # Fixed: migrate + shell -c superuser creation
+├── build.sh
 ├── manage.py
-├── requirements.txt
+├── requirements.txt        # Now includes django-cors-headers + dj-database-url
 └── pytest.ini
 ```
+
+**Frontend not created yet** — will live at `frontend/` subfolder at repo root.
 
 ---
 
@@ -192,13 +235,14 @@ cd C:\Users\acer\Documents\Reaksa\Code\Inventory\inventory-management-system
 
 pipenv shell
 set DJANGO_SETTINGS_MODULE=config.settings.local
-python manage.py migrate
 python manage.py runserver
-
-pytest
 ```
 
-**Virtualenv path:** `C:\Users\acer\.virtualenvs\inventory-management-backend-lAitlqmP`
+**Active virtualenv:** `C:\Users\acer\.virtualenvs\inventory-management-system-y9v2OP1d` (Python 3.11.4)
+
+```cmd
+pytest
+```
 
 ---
 
@@ -211,14 +255,14 @@ pytest
 
 ---
 
-## ⚠️ Known Remaining Items (Not Yet Done)
+## ⚠️ Known Remaining Items
 
-1. **Tests not run yet** — full pytest suite has not been executed; run before any new feature work
-2. **Frontend not built yet** — React app to be created (see PROJECT_PLAN.md)
-3. **CORS not configured** — needed before React frontend can call the API
+1. **Tests not run yet** — full pytest suite has not been executed against the new virtualenv; run before any new feature work
+2. **Frontend not built yet** — React app to be created at `frontend/` (see PROJECT_PLAN.md)
+3. **CORS_ALLOWED_ORIGINS on Render** — add the real Vercel URL once frontend is deployed
 4. **No total_amount field on orders** — computed from items, not stored
 5. **Celery Beat schedule** not configured for `notify_low_stock` periodic task
 6. **No rate limiting** on API endpoints
 7. **Old Render service** (`inventory-management-backend`) not yet deleted — clean it up
-8. **Database expires July 16, 2026** — Render free PostgreSQL has 90-day limit; upgrade or recreate
-9. **Monorepo structure not set up yet** — frontend will be added as `frontend/` subfolder in same repo
+8. **Database expires July 16, 2026** — Render free PostgreSQL has 90-day limit
+9. **Pipfile says python_version = "3.12"** — harmless but worth updating to `"3.11"` to match the actual venv
