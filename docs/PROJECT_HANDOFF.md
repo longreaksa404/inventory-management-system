@@ -10,13 +10,14 @@ This is a complete handoff document for continuing development of the Inventory 
 **Type:** Full-stack Inventory Management System  
 **Goal:** Portfolio project for fullstack developer interviews  
 **Stack:** Django + DRF (backend) + React (frontend, to be built)  
-**Live Backend:** https://inventory-management-backend-g3e7.onrender.com  
-**Swagger Docs:** https://inventory-management-backend-g3e7.onrender.com/swagger/  
-**GitHub:** https://github.com/longreaksa404/inventory-management-backend  
+**Live Backend:** https://inventory-management-system-uet9.onrender.com  
+**Swagger Docs:** https://inventory-management-system-uet9.onrender.com/swagger/  
+**Admin Panel:** https://inventory-management-system-uet9.onrender.com/admin/  
+**GitHub:** https://github.com/longreaksa404/inventory-management-system  
 
 ---
 
-## ✅ What Was Completed in the Previous Session
+## ✅ What Was Completed — Session 1 (Bug Fixes)
 
 ### Backend Bug Fixes (33 issues across 30 files)
 
@@ -61,30 +62,69 @@ This is a complete handoff document for continuing development of the Inventory 
 | `tests/api/test_api_stock.py` | No `warehouse` param, misleading stock math |
 | `tests/domain/inventory/test_inventory_tasks.py` | Wrong `reorder_level` values |
 
-### Local Dev Setup (Completed)
-- Pipenv virtualenv at: `C:\Users\acer\.virtualenvs\inventory-management-backend-lAitlqmP`
-- Python 3.11 (Pipfile says 3.12 but 3.11 works fine)
-- SQLite for local dev (`config/settings/local.py`)
-- DBeaver installed for DB inspection
-- VS Code Pylance configured via `pyrightconfig.json`
+---
 
-### New Files Created
-- `config/settings/local.py` — SQLite + console email + eager Celery for local dev
-- `pyrightconfig.json` — Pylance/Pyright config for VS Code
-- `.vscode/settings.json` — VS Code interpreter path
+## ✅ What Was Completed — Session 2 (Infrastructure)
 
-### Status
-✅ Server runs locally with `python manage.py runserver`  
-✅ Migrations applied successfully  
-✅ All Pylance import warnings resolved  
-✅ DBeaver connected for DB inspection  
+### Repo Renamed
+- GitHub repo renamed from `inventory-management-backend` → `inventory-management-system`
+- Local git remote updated to point to new URL
+- All existing code and history preserved
+
+### New Render Web Service
+- Created new Render web service named `inventory-management-system`
+- URL: `https://inventory-management-system-uet9.onrender.com`
+- Region: Singapore
+- Runtime: Python 3
+- Build Command: `./build.sh`
+- Start Command: `gunicorn config.wsgi:application`
+- Auto-Deploy: On Commit (pushes to main trigger deploy automatically)
+
+### New PostgreSQL Database
+- Created new Render PostgreSQL database named `inventory-db`
+- Region: Singapore (same as web service — uses internal connection URL)
+- Connected to the new web service via `DATABASE_URL` env var
+- Free tier — **expires July 16, 2026** (upgrade or recreate before then)
+
+### Environment Variables (new service)
+All variables configured on the new Render service:
+```
+CELERY_BROKER_URL
+CREATE_SUPERUSER = True
+DATABASE_URL          ← internal Render PostgreSQL URL
+DEBUG
+DJANGO_SETTINGS_MODULE = config.settings.production
+DJANGO_SUPERUSER_EMAIL
+DJANGO_SUPERUSER_FIRST_NAME
+DJANGO_SUPERUSER_LAST_NAME
+DJANGO_SUPERUSER_PASSWORD
+DJANGO_SUPERUSER_PHONE_NUMBER
+REDIS_URL
+SECRET_KEY
+ADMIN_NOTIFICATION_EMAIL
+DEFAULT_FROM_EMAIL
+EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD
+```
+
+### build.sh Fixed
+- Added `python manage.py migrate --no-input`
+- Replaced unreliable heredoc (`<< END`) with `python manage.py shell -c` for superuser creation
+- Superuser is created automatically on every deploy if `CREATE_SUPERUSER=True` and user doesn't already exist
+
+### Verified Working
+- ✅ Swagger UI accessible at `/swagger/`
+- ✅ Admin panel accessible at `/admin/`
+- ✅ Superuser login works
+- ✅ All Django apps visible in admin (Accounts, Inventory, Orders, Periodic Tasks, Reports, Suppliers, Warehouses)
+- ✅ Migrations applied successfully on fresh database
 
 ---
 
 ## 🗂️ Project Structure
 
 ```
-inventory-management-backend/
+inventory-management-system/    ← renamed from inventory-management-backend
 ├── apps/
 │   ├── accounts/       # CustomUser, JWT auth, role-based access
 │   ├── core/           # Base permissions, shared utilities
@@ -95,19 +135,18 @@ inventory-management-backend/
 │   └── warehouses/     # Warehouse model
 ├── config/
 │   └── settings/
-│       ├── base.py     # Shared settings
-│       ├── local.py    # SQLite, console email (NEW)
+│       ├── base.py
+│       ├── local.py        # SQLite, console email
 │       ├── development.py
-│       ├── test.py     # In-memory SQLite, locmem email
+│       ├── test.py         # In-memory SQLite, locmem email
 │       └── production.py
 ├── tests/
-│   ├── api/            # API endpoint tests
-│   └── domain/         # Unit tests per app
-├── api/urls.py         # All routes under /api/v1/
+│   ├── api/
+│   └── domain/
+├── api/urls.py
+├── build.sh            # Fixed: migrate + shell -c superuser creation
 ├── manage.py
-├── Pipfile
 ├── requirements.txt
-├── pyrightconfig.json  # NEW
 └── pytest.ini
 ```
 
@@ -149,45 +188,37 @@ inventory-management-backend/
 ## ⚙️ Local Dev Commands
 
 ```cmd
-# Activate virtualenv
+cd C:\Users\acer\Documents\Reaksa\Code\Inventory\inventory-management-system
+
 pipenv shell
-
-# Set settings module (CMD — inside pipenv shell)
 set DJANGO_SETTINGS_MODULE=config.settings.local
-
-# Run migrations
 python manage.py migrate
-
-# Create superuser
-python manage.py createsuperuser
-
-# Start server
 python manage.py runserver
 
-# Run tests
 pytest
-
-# Run specific test file
-pytest tests/domain/inventory/test_product_model.py -v
 ```
+
+**Virtualenv path:** `C:\Users\acer\.virtualenvs\inventory-management-backend-lAitlqmP`
 
 ---
 
 ## 🚀 Production Deploy (Render)
 
-- Push to GitHub → Render auto-deploys
-- Build command: `./build.sh`
-- Start command: `gunicorn config.wsgi:application`
-- Environment variables needed: `SECRET_KEY`, `DATABASE_URL`, `REDIS_URL`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `ADMIN_NOTIFICATION_EMAIL`
+- Push to `main` → Render auto-deploys
+- Build: `./build.sh` (installs deps, collectstatic, migrate, create superuser if needed)
+- Start: `gunicorn config.wsgi:application`
+- Free tier spins down after inactivity — first request may take 30-60 seconds
 
 ---
 
 ## ⚠️ Known Remaining Items (Not Yet Done)
 
-1. **Frontend not built yet** — React app to be created (see PROJECT_PLAN.md)
-2. **No total_amount field on orders** — computed from items, not stored
-3. **Celery Beat schedule** not configured for `notify_low_stock` periodic task
-4. **No rate limiting** on API endpoints
-5. **No API versioning** beyond URL prefix `/api/v1/`
-6. **Warehouse not required** on stock in/out API — audit trail silently skipped if omitted
-7. **CORS not configured yet** — needed before React frontend can call the API
+1. **Tests not run yet** — full pytest suite has not been executed; run before any new feature work
+2. **Frontend not built yet** — React app to be created (see PROJECT_PLAN.md)
+3. **CORS not configured** — needed before React frontend can call the API
+4. **No total_amount field on orders** — computed from items, not stored
+5. **Celery Beat schedule** not configured for `notify_low_stock` periodic task
+6. **No rate limiting** on API endpoints
+7. **Old Render service** (`inventory-management-backend`) not yet deleted — clean it up
+8. **Database expires July 16, 2026** — Render free PostgreSQL has 90-day limit; upgrade or recreate
+9. **Monorepo structure not set up yet** — frontend will be added as `frontend/` subfolder in same repo
