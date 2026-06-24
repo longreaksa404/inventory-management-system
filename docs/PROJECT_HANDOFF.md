@@ -7,17 +7,70 @@ Complete handoff for continuing development of the IMS backend + React frontend.
 
 ## 🏗️ Project Overview
 
-**Type:** Full-stack Inventory Management System
-**Goal:** Portfolio project for fullstack developer interviews
-**Stack:** Django + DRF (backend) + React (frontend, in progress)
-**Live Backend:** https://inventory-management-system-uet9.onrender.com
-**Swagger Docs:** https://inventory-management-system-uet9.onrender.com/swagger/
-**Admin Panel:** https://inventory-management-system-uet9.onrender.com/admin/
-**GitHub:** https://github.com/longreaksa404/inventory-management-system
+**Type:** Full-stack Inventory Management System  
+**Goal:** Portfolio project for fullstack developer interviews  
+**Stack:** Django + DRF (backend) + React + TypeScript (frontend, in progress)  
+**Live Backend:** https://inventory-management-backend-g3e7.onrender.com  
+**Swagger Docs:** https://inventory-management-backend-g3e7.onrender.com/swagger/  
+**Admin Panel:** https://inventory-management-backend-g3e7.onrender.com/admin/  
+**GitHub:** https://github.com/longreaksa404/inventory-management-system  
+**Frontend:** Not yet deployed (deploy to Vercel once login page works)
 
 ---
 
-## ✅ Session 1 — Bug Fixes (33 issues across 30 files)
+## 🗂️ Monorepo Structure
+
+```
+inventory-management-system/
+├── backend/                        ← Django + DRF (fully built + deployed)
+│   ├── apps/
+│   │   ├── accounts/
+│   │   ├── core/
+│   │   ├── inventory/
+│   │   ├── orders/
+│   │   ├── reports/
+│   │   ├── suppliers/
+│   │   └── warehouses/
+│   ├── config/
+│   │   └── settings/
+│   │       ├── base.py
+│   │       ├── local.py
+│   │       ├── test.py
+│   │       └── production.py
+│   ├── api/
+│   ├── tests/
+│   ├── docs/
+│   ├── manage.py
+│   ├── requirements.txt
+│   ├── Pipfile
+│   ├── pytest.ini
+│   ├── build.sh
+│   ├── start.sh
+│   ├── render.yaml             ← has rootDir: backend
+│   └── Dockerfile
+├── frontend/                       ← React app (in progress)
+│   ├── src/
+│   │   ├── api/                ✅ all API files written
+│   │   ├── types/              ✅ all TypeScript interfaces
+│   │   ├── components/ui/      ✅ shadcn components
+│   │   ├── lib/utils.ts        ✅ cn() utility
+│   │   ├── stores/             ← next: authStore.ts
+│   │   ├── hooks/              ← next: useAuth.ts
+│   │   ├── routes/             ← next: ProtectedRoute.tsx
+│   │   ├── pages/              ← next: LoginPage, DashboardPage
+│   │   └── components/layout/  ← next: Sidebar, Navbar, PageLayout
+│   ├── .env                    ✅ VITE_API_URL=http://127.0.0.1:8000
+│   ├── components.json         ✅ shadcn config
+│   ├── tailwind.config.js      ✅ Tailwind v3 + shadcn tokens
+│   ├── vite.config.ts          ✅ path alias @/ → src/
+│   └── package.json
+├── .gitignore
+└── README.md
+```
+
+---
+
+## ✅ Session 1 — Backend Bug Fixes (33 issues across 30 files)
 
 ### Round 1 — Critical Bugs
 | File | Fix |
@@ -79,41 +132,34 @@ Complete handoff for continuing development of the IMS backend + React frontend.
 ## ✅ Session 4 — Deploy Fixes + Tests Green
 
 - Removed `pywin32==312` from `requirements.txt` (Windows-only, broke Render)
-- Fixed double stock application bug in `apps/inventory/models.py`:
-  - Stock helpers were updating quantity AND creating StockTransaction (which also applies change)
-  - Fix: when user+warehouse provided, delegate to StockTransaction only; use `refresh_from_db()` after
+- Fixed double stock application bug in `apps/inventory/models.py`
 - Added `gunicorn==23.0.0` and `whitenoise==6.9.0` to `requirements.txt`
 - **50/50 tests passing** ✅
 - **Backend live on Render** ✅
 
 ---
 
-## 🗂️ Project Structure
+## ✅ Session 5 — Frontend Scaffolding + API Layer
 
-```
-inventory-management-system/
-├── apps/
-│   ├── accounts/       # CustomUser, JWT auth, RBAC
-│   ├── core/           # Base permissions, shared utilities
-│   ├── inventory/      # Products, Categories, StockTransactions, LowStockAlerts
-│   ├── orders/         # PurchaseOrders, SaleOrders, OrderStatusHistory
-│   ├── reports/        # InventorySnapshot, CategorySummary, report entries
-│   ├── suppliers/      # Supplier model
-│   └── warehouses/     # Warehouse model
-├── config/
-│   └── settings/
-│       ├── base.py
-│       ├── local.py        # SQLite, CORS_ALLOW_ALL_ORIGINS=True
-│       ├── test.py         # In-memory SQLite, locmem email
-│       └── production.py   # Render, CORS allowlist + Vercel regex
-├── frontend/           # React app (to be built)
-├── docs/
-├── tests/
-├── api/urls.py
-├── build.sh
-├── manage.py
-└── requirements.txt
-```
+- Restructured repo into monorepo: `backend/` and `frontend/`
+- Updated `render.yaml` with `rootDir: backend`
+- Scaffolded React + Vite + TypeScript frontend at `frontend/`
+- Installed all dependencies:
+  - `axios`, `@tanstack/react-query`, `react-router-dom`
+  - `react-hook-form`, `zod`, `@hookform/resolvers`
+  - `recharts`, `lucide-react`, `clsx`, `tailwind-merge`
+  - Tailwind CSS v3 + postcss + autoprefixer
+  - shadcn/ui 4.10.0 (Nova preset, Radix)
+- Fixed shadcn setup issues (Tailwind v4 conflict, `@` path issue)
+- Written all frontend foundation files:
+  - `src/types/index.ts` — complete TypeScript interfaces for all API shapes
+  - `src/api/client.ts` — Axios + JWT interceptors with auto-refresh queue
+  - `src/api/auth.ts` — login, profile, change password
+  - `src/api/products.ts` — products, categories, stock mutations
+  - `src/api/warehouses.ts` — warehouse CRUD
+  - `src/api/suppliers.ts` — supplier CRUD
+  - `src/api/orders.ts` — purchase + sale order full lifecycle
+  - `src/api/reports.ts` — all report endpoints
 
 ---
 
@@ -134,7 +180,7 @@ inventory-management-system/
 
 | Prefix | Key endpoints |
 |---|---|
-| `/accounts/` | `register/`, `login/`, `profile/`, `change-password/` |
+| `/accounts/` | `register/`, `login/`, `profile/`, `change-password/`, `refresh/` |
 | `/inventory/` | `products/`, `categories/`, `transactions/`, `stock-summary/` |
 | `/inventory/products/{id}/stock/in/` | Stock in (needs `warehouse` in body) |
 | `/inventory/products/{id}/stock/out/` | Stock out (needs `warehouse` in body) |
@@ -152,50 +198,50 @@ inventory-management-system/
 
 ## 📊 Frontend Pages to Build (in order)
 
-| Priority | Page | API endpoint(s) |
+| Priority | Page | Status |
 |---|---|---|
-| 1 | Login | `/accounts/login/` |
-| 2 | Dashboard | `/reports/inventory-value/`, `/reports/low-stock/`, `/reports/category-summary/` |
-| 3 | Products | `/inventory/products/` |
-| 4 | Categories | `/inventory/categories/` |
-| 5 | Warehouses | `/warehouses/` |
-| 6 | Suppliers | `/suppliers/` |
-| 7 | Stock Transactions | `/inventory/transactions/`, stock in/out/adjust |
-| 8 | Purchase Orders | `/orders/purchase-orders/` |
-| 9 | Sale Orders | `/orders/sales/` |
-| 10 | Low Stock Alerts | `/inventory/low-stock-alerts/` |
-| 11 | Reports | `/reports/transaction-history/` |
+| 1 | Login | ← next |
+| 2 | Dashboard (KPIs + charts) | pending |
+| 3 | Products CRUD | pending |
+| 4 | Categories CRUD | pending |
+| 5 | Warehouses CRUD | pending |
+| 6 | Suppliers CRUD | pending |
+| 7 | Stock Transactions | pending |
+| 8 | Purchase Orders lifecycle | pending |
+| 9 | Sale Orders lifecycle | pending |
+| 10 | Low Stock Alerts | pending |
+| 11 | Reports | pending |
 
 ---
 
 ## ⚙️ Local Dev Commands
 
 ```cmd
-cd C:\Users\acer\Documents\Reaksa\Code\Inventory\inventory-management-system
-
-REM Backend
+# Backend
+cd backend
 pipenv shell
 set DJANGO_SETTINGS_MODULE=config.settings.local
 python manage.py runserver
 
-REM Tests
-set DJANGO_SETTINGS_MODULE=config.settings.test
-pytest
-
-REM Frontend (once scaffolded)
+# Frontend (separate terminal)
 cd frontend
 npm run dev
+
+# Backend tests
+cd backend
+set DJANGO_SETTINGS_MODULE=config.settings.test
+pytest
 ```
 
 ---
 
 ## ⚠️ Known Remaining Items
 
-1. **Frontend not built yet** — scaffold at `frontend/` (see NEXT_STEPS.md)
-2. **CORS_ALLOWED_ORIGINS on Render** — add real Vercel URL once frontend is deployed
-3. **No total_amount field on orders** — computed from items, not stored
-4. **Celery Beat schedule** not configured for `notify_low_stock` periodic task
-5. **No rate limiting** on API endpoints
-6. **Database expires July 16, 2026** — Render free PostgreSQL 90-day limit
-7. **Pipfile says python_version = "3.12"** — harmless, actual venv is 3.11.4
-8. **Vim is default git editor** — run `git config --global core.editor "code --wait"` to use VS Code
+1. **Frontend auth + pages not built yet** — see NEXT_STEPS.md for exact order
+2. **Frontend not deployed** — deploy to Vercel after login page works
+3. **CORS_ALLOWED_ORIGINS on Render** — add real Vercel URL once frontend is deployed
+4. **No total_amount field on orders** — computed from items, not stored
+5. **Celery Beat schedule** not configured for `notify_low_stock` periodic task
+6. **No rate limiting** on API endpoints
+7. **Database expires July 16, 2026** — Render free PostgreSQL 90-day limit
+8. **Pipfile says python_version = "3.12"** — harmless, actual venv is 3.11.4
