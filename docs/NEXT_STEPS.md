@@ -1,29 +1,21 @@
 # ▶️ Next Steps — Start Here
 
-## What Was Done Last Session
-- ✅ GitHub repo renamed to `inventory-management-system`
-- ✅ New Render web service created at `https://inventory-management-system-uet9.onrender.com`
-- ✅ New PostgreSQL database provisioned and connected
-- ✅ All environment variables configured
-- ✅ `build.sh` fixed — migrations + superuser creation now work reliably
-- ✅ Admin panel fully working, superuser login confirmed
+## What Was Done Last Session (Session 3)
+- ✅ Installed `django-cors-headers==4.9.0`
+- ✅ Added `corsheaders` to `INSTALLED_APPS` and `CorsMiddleware` to `MIDDLEWARE`
+- ✅ CORS config block added to `base.py` (`CORS_ALLOWED_ORIGINS`, `CORS_ALLOW_CREDENTIALS`, `CORS_ALLOW_HEADERS`)
+- ✅ `CORS_ALLOW_ALL_ORIGINS = True` added to `local.py` for local dev
+- ✅ `CORS_ALLOWED_ORIGINS` + Vercel regex added to `production.py`
+- ✅ `dj-database-url` added to `requirements.txt` (was missing)
+- ✅ `python manage.py check` passes clean — `System check identified no issues`
+- ✅ Committed and pushed to main → Render auto-deployed with CORS active
 
 ---
 
 ## Immediate Next Actions (in order)
 
-### 1. Clean up old Render service
-Delete the old `inventory-management-backend` web service on Render — it's no longer needed.
-1. Go to Render dashboard → find `inventory-management-backend`
-2. Settings → scroll to bottom → **Delete Web Service**
-3. Type the name to confirm
-
-**Do NOT delete the old database if it still exists — it may have data you want to keep.**
-
----
-
-### 2. Run the full test suite locally
-This has not been done yet. Do this before touching any code:
+### 1. Run the full test suite
+This has not been run against the new virtualenv yet. Do this first before touching any code:
 
 ```cmd
 cd C:\Users\acer\Documents\Reaksa\Code\Inventory\inventory-management-system
@@ -32,79 +24,73 @@ set DJANGO_SETTINGS_MODULE=config.settings.test
 pytest
 ```
 
-Paste the results. Fix any failures before moving on. You want a green baseline before adding new features.
+Paste the results. Fix any failures before moving to the frontend. You want a green baseline.
 
 ---
 
-### 3. Add CORS to the backend
-The React frontend needs CORS headers to make API calls to Django.
+### 2. Scaffold the React frontend
 
-In a new Claude chat, say:
-```
-I need to add django-cors-headers to my Django backend so my React 
-frontend at http://localhost:5173 can make API calls to http://localhost:8000.
-I also want to configure it for the production Render URL:
-https://inventory-management-system-uet9.onrender.com
+The backend is now frontend-ready. Start the React app inside a `frontend/` subfolder at the repo root.
 
-My settings files are at config/settings/base.py, local.py, and production.py.
-Show me exactly what to install and configure.
-```
-
----
-
-### 4. Set up monorepo structure
-The plan is to keep frontend and backend in the same repo (`inventory-management-system`).
+Paste this into the new chat to give Claude full context:
 
 ```
-inventory-management-system/
-├── backend/      ← move all current Django files here
-├── frontend/     ← new React app goes here
-├── docs/
-└── README.md
-```
+I'm building a React frontend for my Inventory Management System (IMS).
+Read PROJECT_HANDOFF.md for full project context.
 
-Or keep backend at root and add `frontend/` subfolder — either works, just decide before scaffolding React.
+Backend API: http://localhost:8000/api/v1/ (local) 
+             https://inventory-management-system-uet9.onrender.com/api/v1/ (production)
+CORS is already configured on the backend.
 
-In a new Claude chat, say:
-```
-I want to add a React frontend to my existing Django repo. The Django code 
-is at the repo root. I want to create a frontend/ subfolder for the React app.
-Should I restructure the repo or just add frontend/ at the root level?
-My Render build command is ./build.sh — how does this affect the monorepo setup?
-```
+Stack:
+- React 18 + TypeScript + Vite
+- TailwindCSS + shadcn/ui
+- React Query (TanStack Query v5)
+- React Router v6
+- Axios (with JWT interceptor — auto-refresh on 401)
+- React Hook Form + Zod
 
----
+Auth:
+- POST /api/v1/accounts/login/ → { access, refresh }
+- Access token lifetime: 2 hours
+- Refresh token lifetime: 7 days
+- All requests need: Authorization: Bearer {token}
 
-### 5. Scaffold the React frontend
-Once CORS and repo structure are decided:
+Frontend location: frontend/ subfolder at repo root (Django backend stays at root)
 
-```
-I want to scaffold a React + TypeScript + Vite frontend for my inventory 
-management system inside a frontend/ folder. 
-
-Use: TailwindCSS + shadcn/ui + React Query + React Router v6 + Axios + React Hook Form + Zod
-
-Backend API: https://inventory-management-system-uet9.onrender.com/api/v1/ (production)
-Local backend: http://localhost:8000/api/v1/
-
-Auth: JWT — POST /api/v1/accounts/login/ returns {access, refresh}
-All requests need Authorization: Bearer {token} header
-
-Set up the project structure, configure all dependencies, build the axios 
-instance with JWT interceptor (auto-refresh on 401), and build the login 
-page end-to-end.
+Task: Scaffold the full project structure, configure all dependencies, 
+build the Axios instance with JWT interceptor (auto-refresh on 401), 
+and build the Login page end-to-end (form → API call → store token → redirect to dashboard).
 ```
 
 ---
 
-## Reference Documents
+### 3. Pages to build (in order after scaffold + auth)
 
-| Document | Purpose |
-|---|---|
-| `PROJECT_HANDOFF.md` | Complete state of the project — what's done, what's pending |
-| `PROJECT_PLAN.md` | Phased roadmap for frontend + backend prep |
-| `PROJECT_SCOPE.md` | What's in scope / out of scope, MVP definition |
-| `NEXT_STEPS.md` | This file — immediate actions |
+| Priority | Page | API endpoint(s) |
+|---|---|---|
+| 1 | Dashboard | `/reports/inventory-value/`, `/reports/low-stock/`, `/reports/category-summary/` |
+| 2 | Products | `/inventory/products/` (list, create, edit, delete) |
+| 3 | Categories | `/inventory/categories/` |
+| 4 | Warehouses | `/api/v1/warehouses/` |
+| 5 | Suppliers | `/api/v1/suppliers/` |
+| 6 | Stock Transactions | `/inventory/transactions/`, stock in/out/adjust |
+| 7 | Purchase Orders | `/orders/purchase-orders/` (create → confirm → receive) |
+| 8 | Sale Orders | `/orders/sales/` (create → confirm → ship → invoice) |
+| 9 | Reports | `/reports/transaction-history/`, `/reports/category-summary/` |
+| 10 | Low Stock Alerts | `/inventory/low-stock-alerts/` |
+
+---
+
+### 4. Add CORS_ALLOWED_ORIGINS on Render (after Vercel deploy)
+
+Once the frontend is deployed to Vercel, add the real URL to Render:
+
+```
+CORS_ALLOWED_ORIGINS=https://your-actual-app.vercel.app
+```
+
+The `*.vercel.app` regex in `production.py` already covers preview deployments automatically.
 
 ---
 
@@ -122,8 +108,13 @@ page end-to-end.
 ## Important Reminders for Next Chat
 
 - Local folder: `C:\Users\acer\Documents\Reaksa\Code\Inventory\inventory-management-system`
-- Virtualenv: `C:\Users\acer\.virtualenvs\inventory-management-backend-lAitlqmP`
-- Set settings: `set DJANGO_SETTINGS_MODULE=config.settings.local`
+- Active virtualenv: `C:\Users\acer\.virtualenvs\inventory-management-system-y9v2OP1d` (Python 3.11.4)
+- Activate with: `pipenv shell`
+- Settings for local: `set DJANGO_SETTINGS_MODULE=config.settings.local`
+- Settings for tests: `set DJANGO_SETTINGS_MODULE=config.settings.test`
 - Role values are lowercase: `"admin"`, `"manager"`, `"staff"`, `"customer"`
 - Phone numbers must be `+855xxxxxxxxx` format
-- Database free tier **expires July 16, 2026** — don't forget to renew or migrate data
+- All list endpoints paginate: `{ count, next, previous, results[] }`
+- Stock endpoints need `warehouse` ID in request body
+- Database free tier **expires July 16, 2026**
+- Frontend will live at `frontend/` subfolder — backend stays at repo root

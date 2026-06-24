@@ -58,6 +58,7 @@ pytest_docker_tools==3.1.9
 python-crontab==3.3.0
 python-dateutil==2.9.0.post0
 pytz==2025.2
+PyYAML==6.0.3
 redis==7.1.0
 requests==2.32.5
 six==1.17.0
@@ -72,6 +73,4 @@ uritemplate==4.2.0
 urllib3==2.6.3
 vine==5.1.0
 wcwidth==0.2.14
-whitenoise==6.9.0
-gunicorn==23.0.0
 yarl==1.22.0
