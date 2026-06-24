@@ -72,8 +72,6 @@ class Product(models.Model):
     # ------------------------------------------------------------------
 
     def increase_stock(self, qty, user=None, warehouse=None, notes=""):
-        self.quantity += qty
-        self.save()
         if user and warehouse:
             StockTransaction.objects.create(
                 product=self,
@@ -83,12 +81,14 @@ class Product(models.Model):
                 performed_by=user,
                 notes=notes or "Stock in via API",
             )
+            self.refresh_from_db()
+        else:
+            self.quantity += qty
+            self.save()
 
     def decrease_stock(self, qty, user=None, warehouse=None, notes=""):
         if qty > self.quantity:
             raise ValueError("Not enough stock")
-        self.quantity -= qty
-        self.save()
         if user and warehouse:
             StockTransaction.objects.create(
                 product=self,
@@ -98,10 +98,12 @@ class Product(models.Model):
                 performed_by=user,
                 notes=notes or "Stock out via API",
             )
+            self.refresh_from_db()
+        else:
+            self.quantity -= qty
+            self.save()
 
     def adjust_stock(self, qty, reason="", user=None, warehouse=None):
-        self.quantity = qty
-        self.save()
         if user and warehouse:
             StockTransaction.objects.create(
                 product=self,
@@ -111,6 +113,10 @@ class Product(models.Model):
                 performed_by=user,
                 notes=reason or "Stock adjustment via API",
             )
+            self.refresh_from_db()
+        else:
+            self.quantity = qty
+            self.save()
 
 
 class StockTransaction(models.Model):
@@ -125,8 +131,9 @@ class StockTransaction(models.Model):
     )
     warehouse = models.ForeignKey(
         Warehouse, on_delete=models.PROTECT,
-        related_name='stock_transactions', default=1
+        related_name='stock_transactions', default=1  # type: ignore[arg-type]
     )
+
     transaction_type = models.CharField(
         max_length=5, choices=TRANSACTION_STATUS_CHOICES, default='IN'
     )
@@ -192,7 +199,7 @@ class LowStockAlert(models.Model):
     Keeping this file clean prevents circular imports and import confusion.
     """
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE, default=1)
+    warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE, default=1)  # type: ignore[arg-type]
     quantity = models.PositiveIntegerField(default=0)
     reorder_level = models.PositiveIntegerField(default=1)
     triggered_at = models.DateTimeField(auto_now_add=True)

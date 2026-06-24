@@ -23,6 +23,7 @@ factory-boy = "*"
 celery = "*"
 pytest-celery = "*"
 redis = "*"
+django-cors-headers = "*"
 
 [dev-packages]
 
