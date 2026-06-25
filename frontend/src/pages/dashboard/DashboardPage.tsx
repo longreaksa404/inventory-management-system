@@ -217,13 +217,13 @@ export default function DashboardPage() {
                     borderRadius: "8px",
                     fontSize: 12,
                   }}
-                  formatter={(value: number) => [
+                  formatter={(value: unknown) => [
                     new Intl.NumberFormat("en-US", {
-                      style: "currency",
-                      currency: "USD",
-                    }).format(value),
+                        style: "currency",
+                        currency: "USD",
+                    }).format(Number(value)),
                     "Value",
-                  ]}
+                    ]}
                 />
                 <Bar
                   dataKey="value"

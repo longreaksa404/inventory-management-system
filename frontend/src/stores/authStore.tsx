@@ -122,7 +122,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "LOGOUT" })
   }
 
-  return AuthContext.Provider({ value: { ...state, login, logout }, children })
+  return (
+    <AuthContext.Provider value={{ ...state, login, logout }}>
+        {children}
+    </AuthContext.Provider>
+    )
 }
 
 // ─── Hook ────────────────────────────────────────────────────────────────────

@@ -81,7 +81,7 @@ const NAV_GROUPS: NavGroup[] = [
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function Sidebar() {
-  const { user, logout, isAdmin, isManager } = useAuth()
+  const { user, logout } = useAuth()
   const navigate = useNavigate()
 
   const canSee = (item: NavItem) => {
