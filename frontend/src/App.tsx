@@ -8,6 +8,8 @@ import LoginPage from "@/pages/auth/LoginPage"
 const DashboardPage = lazy(() => import("@/pages/dashboard/DashboardPage"))
 const ProductsPage = lazy(() => import("@/pages/products/ProductsPage"))
 const CategoriesPage = lazy(() => import("@/pages/categories/CategoriesPage"))
+const WarehousesPage = lazy(() => import("@/pages/warehouses/WarehousesPage"))
+const SuppliersPage = lazy(() => import("@/pages/suppliers/SuppliersPage"))
 
 function PageSpinner() {
   return (
@@ -40,8 +42,8 @@ export default function App() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/categories" element={<CategoriesPage />} />
-            <Route path="/warehouses" element={<ComingSoon title="Warehouses" />} />
-            <Route path="/suppliers" element={<ComingSoon title="Suppliers" />} />
+            <Route path="/warehouses" element={<WarehousesPage />} />
+            <Route path="/suppliers" element={<SuppliersPage />} />
             <Route path="/orders/purchase" element={<ComingSoon title="Purchase Orders" />} />
             <Route path="/orders/sales" element={<ComingSoon title="Sale Orders" />} />
             <Route path="/stock" element={<ComingSoon title="Stock Transactions" />} />
