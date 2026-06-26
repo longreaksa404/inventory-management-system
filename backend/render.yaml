@@ -6,6 +6,7 @@ services:
   - type: web
     name: inventory-management-backend
     runtime: python
+    rootDir: backend
     plan: free
     buildCommand: "./build.sh"
     startCommand: "gunicorn config.wsgi:application"
