@@ -1,102 +1,152 @@
 # ▶️ Next Steps — Start Here
 
-## What Was Done Last Session (Session 5)
+## What Was Done Last Session (Session 6)
 
-- ✅ Restructured repo into monorepo: `backend/` and `frontend/`
-- ✅ Updated `render.yaml` with `rootDir: backend`
-- ✅ Scaffolded React + Vite + TypeScript frontend
-- ✅ Installed all dependencies (Axios, React Query, React Router, Zod, Recharts, lucide-react, clsx, tailwind-merge)
-- ✅ Set up Tailwind CSS v3 + shadcn/ui (Nova preset, Radix, 4.10.0)
-- ✅ Fixed shadcn path issues — components correctly placed in `src/components/ui/`
-- ✅ Created `src/types/index.ts` — all TypeScript interfaces matching backend API shapes
-- ✅ Created `src/api/client.ts` — Axios instance with JWT interceptors + auto-refresh on 401
-- ✅ Created `src/api/auth.ts` — login, profile, change password, refresh token
-- ✅ Created `src/api/products.ts` — products, categories, stock in/out/adjust, transactions
-- ✅ Created `src/api/warehouses.ts` — warehouse CRUD
-- ✅ Created `src/api/suppliers.ts` — supplier CRUD
-- ✅ Created `src/api/orders.ts` — purchase orders + sale orders full lifecycle
-- ✅ Created `src/api/reports.ts` — inventory value, low stock, category summary, transaction history
+- ✅ Built auth flow end-to-end (login → dashboard → logout)
+- ✅ Fixed axios `InternalAxiosRequestConfig` type-only import crash
+- ✅ Fixed `authStore.tsx` JSX provider syntax
+- ✅ Fixed Zod v4 + zodResolver type incompatibility in forms
+- ✅ Built improved DashboardPage (KPI cards with icons, side-by-side chart + alerts panel)
+- ✅ Built ProductsPage with full CRUD (list, search, filter, create, edit, delete)
+- ✅ Wired Products route into App.tsx with lazy loading
+- ✅ Backend running locally with pipenv + SQLite (local settings)
+
+---
+
+## Current Folder Structure (frontend/src) — COMPLETE STATE
+
+```
+frontend/src/
+├── api/
+│   ├── client.ts         ✅ Axios + JWT interceptors (type imports fixed)
+│   ├── auth.ts           ✅ login, profile, change-password
+│   ├── products.ts       ✅ products, categories, stock mutations
+│   ├── warehouses.ts     ✅ warehouse CRUD
+│   ├── suppliers.ts      ✅ supplier CRUD
+│   ├── orders.ts         ✅ purchase + sale order lifecycle
+│   └── reports.ts        ✅ all report endpoints
+├── components/
+│   ├── layout/
+│   │   ├── Sidebar.tsx   ✅ dark sidebar, role-based nav
+│   │   ├── Navbar.tsx    ✅ top bar
+│   │   └── PageLayout.tsx ✅ Outlet shell wrapper
+│   └── ui/
+│       └── button.tsx    ✅ shadcn button
+├── hooks/
+│   └── useAuth.ts        ✅ isAdmin, isManager, displayName helpers
+├── lib/
+│   └── utils.ts          ✅ cn() utility
+├── pages/
+│   ├── auth/
+│   │   └── LoginPage.tsx          ✅ Zod form, redirect-after-login
+│   ├── dashboard/
+│   │   └── DashboardPage.tsx      ✅ KPIs, bar chart, low stock panel
+│   └── products/
+│       └── ProductsPage.tsx       ✅ full CRUD, search, filter, badges
+├── routes/
+│   └── ProtectedRoute.tsx  ✅ hydration guard, redirect to /login
+├── stores/
+│   └── authStore.tsx       ✅ Context + useReducer, login/logout
+├── types/
+│   └── index.ts            ✅ all TypeScript interfaces
+├── App.tsx                 ✅ lazy routes, ComingSoon placeholders
+├── App.css                 ✅ Tailwind directives
+├── index.css               ✅ Tailwind + CSS variables
+└── main.tsx                ✅ QueryClient + Router + AuthProvider
+```
+
+---
+
+## Pages Status
+
+| Page | Status | Notes |
+|---|---|---|
+| Login | ✅ Done | Zod validation, redirect-after-login |
+| Dashboard | ✅ Done | 6 API queries, KPI cards, bar chart, low stock panel |
+| Products | ✅ Done | Full CRUD, search, filter, stock badges |
+| Categories | ❌ Next | Simple CRUD — name + description only |
+| Warehouses | ❌ Todo | CRUD — name, code, location, email |
+| Suppliers | ❌ Todo | CRUD — name, contact, phone, address |
+| Stock Transactions | ❌ Todo | List + stock in/out/adjust forms |
+| Purchase Orders | ❌ Todo | Create, confirm, receive lifecycle |
+| Sale Orders | ❌ Todo | Create, confirm, ship, invoice lifecycle |
+| Low Stock Alerts | ❌ Todo | Read-only list with severity indicators |
+| Reports | ❌ Todo | Charts: inventory value, category summary, transaction history |
 
 ---
 
 ## Immediate Next Actions (in order)
 
-### 1. Create remaining folders and files
-```cmd
-cd frontend
-New-Item -Path "src\stores\authStore.ts" -ItemType File -Force
-New-Item -Path "src\hooks\useAuth.ts" -ItemType File -Force
-New-Item -Path "src\components\layout\Sidebar.tsx" -ItemType File -Force
-New-Item -Path "src\components\layout\Navbar.tsx" -ItemType File -Force
-New-Item -Path "src\components\layout\PageLayout.tsx" -ItemType File -Force
-New-Item -Path "src\routes\ProtectedRoute.tsx" -ItemType File -Force
-New-Item -Path "src\pages\auth\LoginPage.tsx" -ItemType File -Force
-New-Item -Path "src\pages\dashboard\DashboardPage.tsx" -ItemType File -Force
+### 1. Categories page (simplest CRUD — good warm-up)
 ```
+src/pages/categories/CategoriesPage.tsx
+```
+Fields: name, description
+No stock, no SKU, no badges — just a clean table with create/edit/delete modal.
+Wire into App.tsx: replace `<ComingSoon title="Categories" />` with lazy import.
 
-### 2. Build in this exact order (each depends on the previous)
+### 2. Warehouses page
+```
+src/pages/warehouses/WarehousesPage.tsx
+```
+Fields: name, code, location, contact_person, phone, email, notes
 
-| Step | File | Purpose |
-|---|---|---|
-| 1 | `src/stores/authStore.ts` | JWT token storage + user state using React Context |
-| 2 | `src/hooks/useAuth.ts` | Hook to consume auth store cleanly in components |
-| 3 | `src/main.tsx` | Wrap app with React Query + Router providers |
-| 4 | `src/App.tsx` | Route definitions with protected route wiring |
-| 5 | `src/routes/ProtectedRoute.tsx` | Redirect to /login if no token |
-| 6 | `src/pages/auth/LoginPage.tsx` | Login form with React Hook Form + Zod |
-| 7 | `src/components/layout/Sidebar.tsx` | Navigation sidebar with role-based menu |
-| 8 | `src/components/layout/Navbar.tsx` | Top bar with user info + logout |
-| 9 | `src/components/layout/PageLayout.tsx` | Shell wrapper for all authenticated pages |
-| 10 | `src/pages/dashboard/DashboardPage.tsx` | KPIs + charts using real API data |
+### 3. Suppliers page
+```
+src/pages/suppliers/SuppliersPage.tsx
+```
+Fields: name, contact_name, email, phone, address
+
+### 4. Stock Transactions page
+```
+src/pages/stock/StockPage.tsx
+```
+List of all transactions + stock in / stock out / adjust forms per product.
 
 ---
 
-## Current Folder Structure (frontend/src)
+## Key Technical Decisions Locked In
 
-```
-frontend/src/
-├── api/
-│   ├── client.ts       ✅ Axios instance + JWT interceptors
-│   ├── auth.ts         ✅ login, profile, change-password
-│   ├── products.ts     ✅ products, categories, stock mutations
-│   ├── warehouses.ts   ✅ warehouse CRUD
-│   ├── suppliers.ts    ✅ supplier CRUD
-│   ├── orders.ts       ✅ purchase + sale order lifecycle
-│   └── reports.ts      ✅ all report endpoints
-├── assets/             (Vite default)
-├── components/
-│   ├── ui/             ✅ shadcn components (button.tsx)
-│   └── layout/         ← Sidebar, Navbar, PageLayout (next)
-├── hooks/              ← useAuth.ts (next)
-├── lib/
-│   └── utils.ts        ✅ shadcn cn() utility
-├── pages/
-│   ├── auth/           ← LoginPage.tsx (next)
-│   └── dashboard/      ← DashboardPage.tsx (next)
-├── routes/             ← ProtectedRoute.tsx (next)
-├── stores/             ← authStore.ts (next)
-├── types/
-│   └── index.ts        ✅ all TypeScript interfaces
-├── App.css             ✅ Tailwind directives only
-├── App.tsx             ← needs rewrite with router
-├── index.css           ✅ Tailwind + shadcn CSS variables
-└── main.tsx            ← needs React Query + Router providers
-```
+| Decision | Choice |
+|---|---|
+| Auth state | Context + useReducer in authStore.tsx |
+| Server state | React Query (TanStack) |
+| Forms | React Hook Form + Zod v4 |
+| zodResolver usage | `useForm({ resolver: zodResolver(schema) })` — NO generic, use `handleSubmit((values) => ...)` |
+| HTTP client | Axios in src/api/client.ts |
+| Routing | React Router v6, lazy imports in App.tsx |
+| Styling | TailwindCSS + shadcn/ui CSS variables |
+| Token storage | localStorage (`access_token`, `refresh_token`) |
 
 ---
 
-## Key Technical Decisions Already Made
+## Critical Fix — Zod v4 + zodResolver Pattern
 
-| Decision | Choice | Reason |
-|---|---|---|
-| Auth state | React Context + useReducer | No extra dependency, sufficient for this scale |
-| Token storage | localStorage | Survives page refresh, acceptable for portfolio |
-| HTTP client | Axios | Interceptors handle JWT refresh transparently |
-| Server state | React Query (TanStack) | Caching, loading/error states, refetch on focus |
-| Forms | React Hook Form + Zod | Type-safe validation, minimal re-renders |
-| Routing | React Router v6 | Industry standard |
-| UI components | shadcn/ui (Nova preset) | Professional look, fully customizable |
-| Charts | Recharts | Works well with React, good TypeScript support |
+**Always use this pattern** (Zod v4 changed resolver types):
+
+```tsx
+// ✅ CORRECT
+const { register, handleSubmit, formState: { errors } } = useForm({
+  resolver: zodResolver(mySchema),
+  defaultValues: { ... },
+})
+
+const onSubmit = handleSubmit((values) => {
+  // values is correctly typed here
+  myMutation.mutate(values)
+})
+
+<form onSubmit={onSubmit}>
+```
+
+```tsx
+// ❌ WRONG — causes type errors with Zod v4
+const { ... } = useForm<MyFormValues>({
+  resolver: zodResolver(mySchema),
+})
+const onSubmit = (values: MyFormValues) => { ... }
+<form onSubmit={handleSubmit(onSubmit)}>
+```
 
 ---
 
@@ -108,91 +158,43 @@ frontend/src/
 - **Token header:** `Authorization: Bearer {access_token}`
 - **Access token lifetime:** 2 hours
 - **Refresh token lifetime:** 7 days
-- **Token refresh endpoint:** `POST /accounts/refresh/` → `{ access }`
 - **All list endpoints paginate:** `{ count, next, previous, results[] }`
 - **Role values are lowercase:** `"admin"`, `"manager"`, `"staff"`, `"customer"`
 - **localStorage keys:** `access_token`, `refresh_token`
-
----
-
-## Auth Flow to Implement
-
-```
-User visits app
-  → Check localStorage for access_token
-    → Token exists → load user profile → show app
-    → No token → redirect to /login
-
-LoginPage
-  → POST /api/v1/accounts/login/ with { email, password }
-  → Store access_token + refresh_token in localStorage
-  → Fetch user profile → store in React Context
-  → Redirect to /dashboard
-
-Axios interceptor (already written in client.ts)
-  → Every request: attach Authorization: Bearer {token}
-  → On 401: try POST /accounts/refresh/
-    → Success: retry original request
-    → Fail: clear tokens → redirect to /login
-
-ProtectedRoute
-  → If no token in localStorage → <Navigate to="/login" />
-  → If token exists → render children
-```
-
----
-
-## Dashboard KPIs to Show
-
-Fetch from these endpoints on mount:
-- `GET /reports/inventory-value/` → total inventory value
-- `GET /reports/low-stock/` → count of low stock items
-- `GET /reports/category-summary/` → bar chart data
-- `GET /inventory/products/?page=1` → total product count (use `count` field)
-- `GET /orders/purchase-orders/?status=draft` → pending purchase orders
-- `GET /orders/sales/?status=draft` → pending sale orders
-
----
-
-## Shadcn Components to Install Before Building UI
-
-Run these from the `frontend/` directory:
-```cmd
-npx shadcn@4.10.0 add card
-npx shadcn@4.10.0 add input
-npx shadcn@4.10.0 add label
-npx shadcn@4.10.0 add form
-npx shadcn@4.10.0 add dropdown-menu
-npx shadcn@4.10.0 add badge
-npx shadcn@4.10.0 add table
-npx shadcn@4.10.0 add dialog
-npx shadcn@4.10.0 add select
-npx shadcn@4.10.0 add toast
-npx shadcn@4.10.0 add separator
-npx shadcn@4.10.0 add avatar
-npx shadcn@4.10.0 add skeleton
-```
+- **Products need warehouse for stock mutations:** Pass `warehouse` ID in body
 
 ---
 
 ## Local Dev Commands
 
-```cmd
-# Backend
+```powershell
+# Backend (open new terminal, run every time)
 cd backend
 pipenv shell
-set DJANGO_SETTINGS_MODULE=config.settings.local
+# wait for virtualenv to activate, then:
+$env:DJANGO_SETTINGS_MODULE="config.settings.local"
 python manage.py runserver
 
 # Frontend (separate terminal)
 cd frontend
 npm run dev
 
-# Run backend tests
-cd backend
-set DJANGO_SETTINGS_MODULE=config.settings.test
-pytest
+# Backend runs at: http://127.0.0.1:8000
+# Frontend runs at: http://localhost:5173
+# Swagger docs at: http://127.0.0.1:8000/swagger/
+# Django admin at: http://127.0.0.1:8000/admin/
 ```
+
+---
+
+## Known Issues / Notes
+
+1. Subtitle text on dashboard is blue (looks like a link) — minor CSS fix needed
+2. "admin admin" at bottom of sidebar — user created with both names as "admin", not a bug
+3. Pipfile says python_version = "3.12" but virtualenv runs 3.11.4 — harmless warning
+4. Frontend not deployed yet — deploy to Vercel after more pages are built
+5. CORS_ALLOWED_ORIGINS on Render needs real Vercel URL once deployed
+6. Render free PostgreSQL expires July 16, 2026 — local SQLite used for dev
 
 ---
 
@@ -204,7 +206,7 @@ pytest
 | Swagger | https://inventory-management-backend-g3e7.onrender.com/swagger/ |
 | Admin | https://inventory-management-backend-g3e7.onrender.com/admin/ |
 | GitHub | https://github.com/longreaksa404/inventory-management-system |
-| Frontend (TBD) | Deploy to Vercel after login page is working |
+| Frontend | Not yet deployed |
 
 ---
 
@@ -212,4 +214,19 @@ pytest
 
 Paste this at the start of the next conversation:
 
-> **Current task:** Continue building the IMS frontend. Backend is fully deployed. Frontend scaffolding is complete — Vite + React + TypeScript + Tailwind + shadcn/ui is working, all API files and TypeScript types are written. Next step is `src/stores/authStore.ts`, then `useAuth` hook, then update `main.tsx` and `App.tsx` with providers and routing, then `ProtectedRoute`, then `LoginPage`. See `backend/docs/NEXT_STEPS.md` for full context and exact file order.
+> I'm building an IMS fullstack portfolio project.
+> Backend: Django + DRF (deployed on Render, also runs locally).
+> Frontend: React + TypeScript + Vite + TailwindCSS + shadcn/ui.
+>
+> Done so far: auth flow, dashboard with KPIs and charts, products page with full CRUD.
+>
+> Key decisions: React Query for server state, React Hook Form + Zod v4 for forms
+> (useForm without generic, handleSubmit((values) => ...) pattern),
+> Context + useReducer for auth, Axios with JWT interceptors.
+>
+> See docs/NEXT_STEPS.md for full context and exact file locations.
+>
+> Next task: Build CategoriesPage (src/pages/categories/CategoriesPage.tsx).
+> Simple CRUD — fields are name and description only.
+> Same pattern as ProductsPage but simpler — no stock, no SKU, no badges.
+> After that: WarehousesPage, then SuppliersPage.
