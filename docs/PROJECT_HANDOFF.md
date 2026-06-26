@@ -10,9 +10,9 @@ Complete handoff for continuing development of the IMS backend + React frontend.
 **Type:** Full-stack Inventory Management System
 **Goal:** Portfolio project for fullstack developer interviews
 **Stack:** Django + DRF (backend) + React + TypeScript (frontend, in progress)
-**Live Backend:** https://inventory-management-backend-g3e7.onrender.com
-**Swagger Docs:** https://inventory-management-backend-g3e7.onrender.com/swagger/
-**Admin Panel:** https://inventory-management-backend-g3e7.onrender.com/admin/
+**Live Backend:** https://inventory-management-system-uet9.onrender.com
+**Swagger Docs:** https://inventory-management-system-uet9.onrender.com/swagger/
+**Admin Panel:** https://inventory-management-system-uet9.onrender.com/admin/
 **GitHub:** https://github.com/longreaksa404/inventory-management-system
 **Frontend:** Not yet deployed (deploy to Vercel once more pages are built)
 
@@ -23,121 +23,89 @@ Complete handoff for continuing development of the IMS backend + React frontend.
 ```
 inventory-management-system/
 ├── backend/                          ← Django + DRF (fully built + deployed)
-│   ├── apps/
-│   │   ├── accounts/
-│   │   ├── core/
-│   │   ├── inventory/
-│   │   ├── orders/
-│   │   ├── reports/
-│   │   ├── suppliers/
-│   │   └── warehouses/
-│   ├── config/
-│   │   └── settings/
-│   │       ├── base.py
-│   │       ├── local.py
-│   │       ├── test.py
-│   │       └── production.py
-│   ├── api/
-│   ├── tests/
-│   ├── docs/
-│   ├── manage.py
-│   ├── requirements.txt
-│   ├── Pipfile
-│   ├── pytest.ini
-│   ├── build.sh
-│   ├── start.sh
-│   ├── render.yaml
-│   └── Dockerfile
-└── frontend/                         ← React app (in progress)
-    ├── src/
-    │   ├── api/                  ✅ all API files written
-    │   │   ├── client.ts         ✅ Axios + JWT interceptors (type imports fixed)
-    │   │   ├── auth.ts           ✅ login, profile, change-password
-    │   │   ├── products.ts       ✅ products, categories, stock mutations
-    │   │   ├── warehouses.ts     ✅ warehouse CRUD
-    │   │   ├── suppliers.ts      ✅ supplier CRUD
-    │   │   ├── orders.ts         ✅ purchase + sale order lifecycle
-    │   │   └── reports.ts        ✅ all report endpoints
-    │   ├── components/
-    │   │   ├── layout/
-    │   │   │   ├── Sidebar.tsx   ✅ dark sidebar, role-based nav
-    │   │   │   ├── Navbar.tsx    ✅ top bar
-    │   │   │   └── PageLayout.tsx ✅ Outlet shell wrapper
-    │   │   └── ui/
-    │   │       └── button.tsx    ✅ shadcn button
-    │   ├── hooks/
-    │   │   └── useAuth.ts        ✅ isAdmin, isManager, displayName helpers
-    │   ├── lib/
-    │   │   └── utils.ts          ✅ cn() utility
-    │   ├── pages/
-    │   │   ├── auth/
-    │   │   │   └── LoginPage.tsx          ✅ Done
-    │   │   ├── dashboard/
-    │   │   │   └── DashboardPage.tsx      ✅ Done
-    │   │   └── products/
-    │   │       └── ProductsPage.tsx       ✅ Done
-    │   ├── routes/
-    │   │   └── ProtectedRoute.tsx  ✅ hydration guard
-    │   ├── stores/
-    │   │   └── authStore.tsx       ✅ Context + useReducer
-    │   ├── types/
-    │   │   └── index.ts            ✅ all TypeScript interfaces
-    │   ├── App.tsx                 ✅ lazy routes, ComingSoon placeholders
-    │   ├── App.css                 ✅ Tailwind directives
-    │   ├── index.css               ✅ Tailwind + CSS variables
-    │   └── main.tsx                ✅ QueryClient + Router + AuthProvider
-    ├── .env                        ✅ VITE_API_URL=http://127.0.0.1:8000
-    ├── components.json             ✅ shadcn config
-    ├── tailwind.config.js          ✅ Tailwind v3 + shadcn tokens
-    ├── vite.config.ts              ✅ path alias @/ → src/
-    └── package.json
-
+└── frontend/
+    └── src/
+        ├── api/
+        │   ├── client.ts         ✅ Axios + JWT interceptors
+        │   ├── auth.ts           ✅
+        │   ├── products.ts       ✅ products, categories, stock mutations
+        │   ├── warehouses.ts     ✅
+        │   ├── suppliers.ts      ✅
+        │   ├── orders.ts         ✅ purchase + sale order lifecycle
+        │   └── reports.ts        ✅
+        ├── components/
+        │   ├── layout/
+        │   │   ├── Sidebar.tsx   ✅
+        │   │   ├── Navbar.tsx    ✅
+        │   │   └── PageLayout.tsx ✅
+        │   └── ui/
+        │       └── button.tsx    ✅
+        ├── hooks/
+        │   └── useAuth.ts        ✅
+        ├── lib/
+        │   └── utils.ts          ✅
+        ├── pages/
+        │   ├── auth/
+        │   │   └── LoginPage.tsx          ✅
+        │   ├── dashboard/
+        │   │   └── DashboardPage.tsx      ✅
+        │   ├── products/
+        │   │   └── ProductsPage.tsx       ✅
+        │   ├── categories/
+        │   │   └── CategoriesPage.tsx     ✅
+        │   ├── warehouses/
+        │   │   └── WarehousesPage.tsx     ✅
+        │   └── suppliers/
+        │       └── SuppliersPage.tsx      ✅
+        ├── routes/
+        │   └── ProtectedRoute.tsx  ✅
+        ├── stores/
+        │   └── authStore.tsx       ✅
+        ├── types/
+        │   └── index.ts            ✅
+        ├── App.tsx                 ✅ all 6 pages wired, 5 ComingSoon remaining
+        ├── App.css                 ✅
+        ├── index.css               ✅
+        └── main.tsx                ✅
 ```
 
 ---
 
-## ✅ Session 1 — Backend Bug Fixes (33 issues across 30 files)
-All backend bugs fixed. See original PROJECT_HANDOFF.md for full list.
-
-## ✅ Session 2 — Infrastructure
-Repo renamed, Render web service + PostgreSQL created, build.sh fixed.
-
+## ✅ Session 1 — Backend Bug Fixes
+## ✅ Session 2 — Infrastructure (Render deploy)
 ## ✅ Session 3 — CORS
-django-cors-headers added and configured for all environments.
-
-## ✅ Session 4 — Deploy Fixes + Tests Green
-50/50 tests passing. Backend live on Render.
-
+## ✅ Session 4 — Deploy Fixes + Tests Green (50/50)
 ## ✅ Session 5 — Frontend Scaffolding + API Layer
-React + Vite + TypeScript scaffolded. All API files and TypeScript types written.
-
 ## ✅ Session 6 — Auth Flow + Dashboard + Products Page
 
-### Auth flow
-- `authStore.tsx` — Context + useReducer, JWT hydration on page refresh
-- `useAuth.ts` — isAdmin, isManager, isStaff, hasRole, displayName helpers
-- `main.tsx` — QueryClient → BrowserRouter → AuthProvider → App
-- `App.tsx` — lazy-loaded routes, ComingSoon placeholders
-- `ProtectedRoute.tsx` — hydration guard, redirect-after-login state
-- `LoginPage.tsx` — Zod validation, 401 vs 5xx error handling
-
-### Layout shell
-- `Sidebar.tsx` — dark sidebar (#0f1117), role-based nav groups
-- `Navbar.tsx` — top bar
-- `PageLayout.tsx` — Outlet wrapper
+## ✅ Session 7 — Categories, Warehouses, Suppliers Pages
 
 ### Pages built
-- `DashboardPage.tsx` — 6 parallel React Query calls, KPI cards with icons,
-  inventory value bar chart, low stock alerts panel, date chip
-- `ProductsPage.tsx` — paginated table, search with 400ms debounce,
-  category + status filters, create/edit modal, delete confirmation,
-  color-coded stock badges (green/amber/red), skeleton loading rows
+- `CategoriesPage.tsx` — full CRUD, modal form, delete confirmation, empty state with Tag icon, formatted created_at date
+- `WarehousesPage.tsx` — full CRUD, code auto-uppercase with onChange, monospace badge for code column, scrollable modal (max-h-[90vh]), em dash for optional empty fields
+- `SuppliersPage.tsx` — full CRUD, search with 400ms debounce (hits backend search= param), optional email validation, line-clamp-1 on address, context-aware empty state message
 
-### Bugs fixed during session
-- `axios InternalAxiosRequestConfig` must be type-only import
-- `authStore` must be `.tsx` not `.ts` (contains JSX)
-- Zod v4 + zodResolver type incompatibility — fixed by removing generic
-  from `useForm` and using `handleSubmit((values) => ...)` pattern
+### App.tsx updates
+- All three routes replaced from ComingSoon to lazy-loaded page components
+- Remaining ComingSoon: suppliers ❌ (now done), orders/purchase, orders/sales, stock, alerts, reports
+
+---
+
+## 📊 Frontend Pages Status
+
+| Page | Status |
+|---|---|
+| Login | ✅ Done |
+| Dashboard | ✅ Done |
+| Products | ✅ Done |
+| Categories | ✅ Done |
+| Warehouses | ✅ Done |
+| Suppliers | ✅ Done |
+| Stock Transactions | ❌ Next |
+| Purchase Orders | ❌ Todo |
+| Sale Orders | ❌ Todo |
+| Low Stock Alerts | ❌ Todo |
+| Reports | ❌ Todo |
 
 ---
 
@@ -150,103 +118,59 @@ React + Vite + TypeScript scaffolded. All API files and TypeScript types written
 | Staff | `"staff"` | Orders, stock in/out |
 | Customer | `"customer"` | Sales orders only |
 
-**Always compare against lowercase stored values.**
-
----
-
-## 📊 Frontend Pages Status
-
-| Page | Status |
-|---|---|
-| Login | ✅ Done |
-| Dashboard | ✅ Done |
-| Products | ✅ Done |
-| Categories | ❌ Next |
-| Warehouses | ❌ Todo |
-| Suppliers | ❌ Todo |
-| Stock Transactions | ❌ Todo |
-| Purchase Orders | ❌ Todo |
-| Sale Orders | ❌ Todo |
-| Low Stock Alerts | ❌ Todo |
-| Reports | ❌ Todo |
-
----
-
-## 🌐 API Endpoints (all under `/api/v1/`)
-
-| Prefix | Key endpoints |
-|---|---|
-| `/accounts/` | `register/`, `login/`, `profile/`, `change-password/`, `refresh/` |
-| `/inventory/` | `products/`, `categories/`, `transactions/`, `stock-summary/` |
-| `/inventory/products/{id}/stock/in/` | Stock in (needs `warehouse` in body) |
-| `/inventory/products/{id}/stock/out/` | Stock out (needs `warehouse` in body) |
-| `/inventory/products/{id}/stock/adjust/` | Adjust (admin only, needs `warehouse`) |
-| `/warehouses/` | CRUD |
-| `/suppliers/` | CRUD |
-| `/orders/purchase-orders/` | Purchase order lifecycle |
-| `/orders/sales/` | Sale order lifecycle |
-| `/reports/inventory-value/` | Total inventory value |
-| `/reports/low-stock/` | Low stock alerts |
-| `/reports/category-summary/` | Per-category totals |
-| `/reports/transaction-history/` | All order history |
-
 ---
 
 ## ⚠️ Critical Pattern — Zod v4 + zodResolver
 
-Always use this in every form component:
-
 ```tsx
-// ✅ CORRECT
+// ✅ CORRECT — no generic on useForm
 const { register, handleSubmit, formState: { errors } } = useForm({
   resolver: zodResolver(mySchema),
   defaultValues: { ... },
 })
-
-const onSubmit = handleSubmit((values) => {
-  myMutation.mutate(values)
-})
+const onSubmit = handleSubmit((values) => { myMutation.mutate(values) })
 ```
 
-```tsx
-// ❌ WRONG — causes TypeScript errors
-const { ... } = useForm<MyFormValues>({ resolver: zodResolver(mySchema) })
-const onSubmit = (values: MyFormValues) => { ... }
-<form onSubmit={handleSubmit(onSubmit)}>
-```
+---
+
+## 🎨 Established UI Patterns
+
+| Pattern | Implementation |
+|---|---|
+| Empty optional field in table | `<span className="italic text-muted-foreground/50">—</span>` |
+| Skeleton loading rows | `Array.from({ length: N }).map((_, i) => ...)` with animate-pulse divs |
+| Search debounce | `let searchTimeout = 0` + `window.setTimeout(..., 400)` |
+| Modal scroll | `max-h-[90vh] overflow-y-auto` on modal container |
+| Action buttons row | edit: `hover:bg-muted`, delete: `hover:bg-red-50 hover:text-red-500` |
+| Primary button | `bg-foreground text-background hover:opacity-90` |
+| Danger button | `bg-red-500 text-white hover:bg-red-600` |
 
 ---
 
 ## ⚙️ Local Dev Commands (PowerShell)
 
 ```powershell
-# Backend — run every time you open a new terminal
+# Backend
 cd backend
 pipenv shell
-# wait for virtualenv to activate, then:
 $env:DJANGO_SETTINGS_MODULE="config.settings.local"
 python manage.py runserver
 
-# Frontend — separate terminal
+# Frontend
 cd frontend
 npm run dev
 
 # Backend: http://127.0.0.1:8000
 # Frontend: http://localhost:5173
-# Swagger: http://127.0.0.1:8000/swagger/
-# Admin: http://127.0.0.1:8000/admin/
 ```
 
 ---
 
-## ⚠️ Known Remaining Items
+## ⚠️ Known Issues
 
-1. **Categories, Warehouses, Suppliers pages** — not built yet
-2. **Stock, Orders, Alerts, Reports pages** — not built yet
-3. **Frontend not deployed** — deploy to Vercel when more pages done
-4. **CORS_ALLOWED_ORIGINS on Render** — add real Vercel URL once deployed
-5. **Subtitle text on dashboard** — slightly blue, minor CSS fix needed
-6. **Pipfile says python_version 3.12** — virtualenv runs 3.11.4, harmless warning
-7. **Render free PostgreSQL expires July 16, 2026**
-8. **No total_amount field on orders** — computed from items, not stored
-9. **Celery Beat schedule** not configured for notify_low_stock periodic task
+1. Dashboard low stock panel shows product/warehouse IDs — improve when alerts page is built
+2. Frontend not deployed yet
+3. CORS_ALLOWED_ORIGINS on Render needs real Vercel URL once deployed
+4. Render free PostgreSQL expires July 16, 2026
+5. Pipfile python_version 3.12 vs virtualenv 3.11.4 — harmless warning
+6. Adjust stock is admin-only on backend — StockPage should hide/disable for non-admins
