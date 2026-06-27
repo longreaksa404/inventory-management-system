@@ -5,25 +5,21 @@ import ProtectedRoute from "@/routes/ProtectedRoute"
 import PageLayout from "@/components/layout/PageLayout"
 import LoginPage from "@/pages/auth/LoginPage"
 
-const DashboardPage = lazy(() => import("@/pages/dashboard/DashboardPage"))
-const ProductsPage = lazy(() => import("@/pages/products/ProductsPage"))
-const CategoriesPage = lazy(() => import("@/pages/categories/CategoriesPage"))
-const WarehousesPage = lazy(() => import("@/pages/warehouses/WarehousesPage"))
-const SuppliersPage = lazy(() => import("@/pages/suppliers/SuppliersPage"))
+const DashboardPage       = lazy(() => import("@/pages/dashboard/DashboardPage"))
+const ProductsPage        = lazy(() => import("@/pages/products/ProductsPage"))
+const CategoriesPage      = lazy(() => import("@/pages/categories/CategoriesPage"))
+const WarehousesPage      = lazy(() => import("@/pages/warehouses/WarehousesPage"))
+const SuppliersPage       = lazy(() => import("@/pages/suppliers/SuppliersPage"))
+const StockPage           = lazy(() => import("@/pages/stock/StockPage"))
+const PurchaseOrdersPage  = lazy(() => import("@/pages/orders/PurchaseOrdersPage"))
+const SaleOrdersPage      = lazy(() => import("@/pages/orders/SaleOrdersPage"))
+const AlertsPage          = lazy(() => import("@/pages/alerts/AlertsPage"))
+const ReportsPage         = lazy(() => import("@/pages/reports/ReportsPage"))
 
 function PageSpinner() {
   return (
     <div className="flex h-full items-center justify-center">
       <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted border-t-foreground" />
-    </div>
-  )
-}
-
-function ComingSoon({ title }: { title: string }) {
-  return (
-    <div className="flex h-64 flex-col items-center justify-center gap-2 text-center">
-      <p className="text-lg font-semibold">{title}</p>
-      <p className="text-sm text-muted-foreground">Coming soon</p>
     </div>
   )
 }
@@ -39,16 +35,16 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<PageLayout />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/products" element={<ProductsPage />} />
-            <Route path="/categories" element={<CategoriesPage />} />
-            <Route path="/warehouses" element={<WarehousesPage />} />
-            <Route path="/suppliers" element={<SuppliersPage />} />
-            <Route path="/orders/purchase" element={<ComingSoon title="Purchase Orders" />} />
-            <Route path="/orders/sales" element={<ComingSoon title="Sale Orders" />} />
-            <Route path="/stock" element={<ComingSoon title="Stock Transactions" />} />
-            <Route path="/alerts" element={<ComingSoon title="Low Stock Alerts" />} />
-            <Route path="/reports" element={<ComingSoon title="Reports" />} />
+            <Route path="/dashboard"      element={<DashboardPage />} />
+            <Route path="/products"       element={<ProductsPage />} />
+            <Route path="/categories"     element={<CategoriesPage />} />
+            <Route path="/warehouses"     element={<WarehousesPage />} />
+            <Route path="/suppliers"      element={<SuppliersPage />} />
+            <Route path="/stock"          element={<StockPage />} />
+            <Route path="/orders/purchase" element={<PurchaseOrdersPage />} />
+            <Route path="/orders/sales"   element={<SaleOrdersPage />} />
+            <Route path="/alerts"         element={<AlertsPage />} />
+            <Route path="/reports"        element={<ReportsPage />} />
           </Route>
         </Route>
 
