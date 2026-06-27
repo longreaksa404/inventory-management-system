@@ -9,12 +9,12 @@ Complete handoff for continuing development of the IMS backend + React frontend.
 
 **Type:** Full-stack Inventory Management System
 **Goal:** Portfolio project for fullstack developer interviews
-**Stack:** Django + DRF (backend) + React + TypeScript (frontend, in progress)
+**Stack:** Django + DRF (backend) + React + TypeScript (frontend)
 **Live Backend:** https://inventory-management-system-uet9.onrender.com
 **Swagger Docs:** https://inventory-management-system-uet9.onrender.com/swagger/
 **Admin Panel:** https://inventory-management-system-uet9.onrender.com/admin/
 **GitHub:** https://github.com/longreaksa404/inventory-management-system
-**Frontend:** Not yet deployed (deploy to Vercel once more pages are built)
+**Frontend:** Not yet deployed — deploy to Vercel next session
 
 ---
 
@@ -45,49 +45,38 @@ inventory-management-system/
         ├── lib/
         │   └── utils.ts          ✅
         ├── pages/
-        │   ├── auth/
-        │   │   └── LoginPage.tsx          ✅
-        │   ├── dashboard/
-        │   │   └── DashboardPage.tsx      ✅
-        │   ├── products/
-        │   │   └── ProductsPage.tsx       ✅
-        │   ├── categories/
-        │   │   └── CategoriesPage.tsx     ✅
-        │   ├── warehouses/
-        │   │   └── WarehousesPage.tsx     ✅
-        │   └── suppliers/
-        │       └── SuppliersPage.tsx      ✅
-        ├── routes/
-        │   └── ProtectedRoute.tsx  ✅
-        ├── stores/
-        │   └── authStore.tsx       ✅
-        ├── types/
-        │   └── index.ts            ✅
-        ├── App.tsx                 ✅ all 6 pages wired, 5 ComingSoon remaining
-        ├── App.css                 ✅
-        ├── index.css               ✅
-        └── main.tsx                ✅
+        │   ├── auth/LoginPage.tsx              ✅
+        │   ├── dashboard/DashboardPage.tsx     ✅
+        │   ├── products/ProductsPage.tsx       ✅
+        │   ├── categories/CategoriesPage.tsx   ✅
+        │   ├── warehouses/WarehousesPage.tsx   ✅
+        │   ├── suppliers/SuppliersPage.tsx     ✅
+        │   ├── stock/StockPage.tsx             ✅ NEW
+        │   ├── orders/PurchaseOrdersPage.tsx   ✅ NEW
+        │   ├── orders/SaleOrdersPage.tsx       ✅ NEW
+        │   ├── alerts/AlertsPage.tsx           ✅ NEW
+        │   └── reports/ReportsPage.tsx         ✅ NEW
+        ├── routes/ProtectedRoute.tsx  ✅
+        ├── stores/authStore.tsx       ✅
+        ├── types/index.ts             ✅
+        ├── App.tsx                    ✅ all 10 routes wired
+        ├── App.css                    ✅
+        ├── index.css                  ✅
+        └── main.tsx                   ✅
 ```
 
 ---
 
-## ✅ Session 1 — Backend Bug Fixes
-## ✅ Session 2 — Infrastructure (Render deploy)
-## ✅ Session 3 — CORS
-## ✅ Session 4 — Deploy Fixes + Tests Green (50/50)
-## ✅ Session 5 — Frontend Scaffolding + API Layer
-## ✅ Session 6 — Auth Flow + Dashboard + Products Page
+## ✅ Session History
 
-## ✅ Session 7 — Categories, Warehouses, Suppliers Pages
-
-### Pages built
-- `CategoriesPage.tsx` — full CRUD, modal form, delete confirmation, empty state with Tag icon, formatted created_at date
-- `WarehousesPage.tsx` — full CRUD, code auto-uppercase with onChange, monospace badge for code column, scrollable modal (max-h-[90vh]), em dash for optional empty fields
-- `SuppliersPage.tsx` — full CRUD, search with 400ms debounce (hits backend search= param), optional email validation, line-clamp-1 on address, context-aware empty state message
-
-### App.tsx updates
-- All three routes replaced from ComingSoon to lazy-loaded page components
-- Remaining ComingSoon: suppliers ❌ (now done), orders/purchase, orders/sales, stock, alerts, reports
+- **Session 1** — Backend bug fixes
+- **Session 2** — Infrastructure (Render deploy)
+- **Session 3** — CORS
+- **Session 4** — Deploy fixes + tests green (50/50)
+- **Session 5** — Frontend scaffolding + API layer
+- **Session 6** — Auth flow + Dashboard + Products page
+- **Session 7** — Categories, Warehouses, Suppliers pages
+- **Session 8** — Stock, PurchaseOrders, SaleOrders, Alerts, Reports pages + App.tsx wired
 
 ---
 
@@ -101,11 +90,13 @@ inventory-management-system/
 | Categories | ✅ Done |
 | Warehouses | ✅ Done |
 | Suppliers | ✅ Done |
-| Stock Transactions | ❌ Next |
-| Purchase Orders | ❌ Todo |
-| Sale Orders | ❌ Todo |
-| Low Stock Alerts | ❌ Todo |
-| Reports | ❌ Todo |
+| Stock Transactions | ✅ Done |
+| Purchase Orders | ✅ Done |
+| Sale Orders | ✅ Done |
+| Low Stock Alerts | ✅ Done |
+| Reports | ✅ Done |
+
+**MVP is feature-complete. Next step: deploy + polish.**
 
 ---
 
@@ -113,7 +104,7 @@ inventory-management-system/
 
 | Role | Stored Value | Access Level |
 |---|---|---|
-| Admin | `"admin"` | Full access |
+| Admin | `"admin"` | Full access incl. stock adjust |
 | Manager | `"manager"` | Warehouse + stock oversight |
 | Staff | `"staff"` | Orders, stock in/out |
 | Customer | `"customer"` | Sales orders only |
@@ -144,6 +135,11 @@ const onSubmit = handleSubmit((values) => { myMutation.mutate(values) })
 | Action buttons row | edit: `hover:bg-muted`, delete: `hover:bg-red-50 hover:text-red-500` |
 | Primary button | `bg-foreground text-background hover:opacity-90` |
 | Danger button | `bg-red-500 text-white hover:bg-red-600` |
+| Dynamic form rows | `useFieldArray` from react-hook-form |
+| Expandable table row | local `useState(false)` per row, `ChevronDown/Up` icon toggle |
+| Stock type badge | IN=green-50/green-700, OUT=red-50/red-600, ADJ=blue-50/blue-700 |
+| Order status badge | per-status config object mapping status → label + className |
+| Severity bar | ratio-based width %, red/amber fill based on qty/reorder_level |
 
 ---
 
@@ -168,9 +164,10 @@ npm run dev
 
 ## ⚠️ Known Issues
 
-1. Dashboard low stock panel shows product/warehouse IDs — improve when alerts page is built
-2. Frontend not deployed yet
-3. CORS_ALLOWED_ORIGINS on Render needs real Vercel URL once deployed
+1. Dashboard low stock panel shows `Product #N` / `Warehouse #N` IDs — needs name join or link to AlertsPage
+2. Frontend not deployed yet — deploy to Vercel next
+3. `CORS_ALLOWED_ORIGINS` on Render needs real Vercel URL after deploy
 4. Render free PostgreSQL expires July 16, 2026
-5. Pipfile python_version 3.12 vs virtualenv 3.11.4 — harmless warning
-6. Adjust stock is admin-only on backend — StockPage should hide/disable for non-admins
+5. Pipfile python_version 3.12 vs virtualenv 3.11.4 — harmless
+6. AlertsPage shows `Product #N` / `Warehouse #N` IDs — the `/reports/low-stock/` API endpoint returns raw IDs, not names. Fix by either: (a) changing the backend view to join product/warehouse names, or (b) fetching all products/warehouses client-side and doing a lookup map
+7. SaleOrder create form uses a numeric customer ID field — ideally this should be a user search/select for better UX, but requires a customer list API endpoint
