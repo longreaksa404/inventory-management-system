@@ -18,11 +18,26 @@ Complete handoff for continuing development of the IMS backend + React frontend.
 
 ---
 
+## 🗄️ Database Architecture
+
+| Environment | Database | Location |
+|---|---|---|
+| Local dev | SQLite | `backend/db.sqlite3` |
+| Production | PostgreSQL | Supabase (Singapore) |
+
+**Supabase project ID:** `nducnhxvrzxdeucrijeu`
+**Supabase dashboard:** https://supabase.com/dashboard/project/nducnhxvrzxdeucrijeu
+**Connection type used:** Session Pooler (NOT Direct — Render is IPv4-only, Supabase direct uses IPv6)
+
+---
+
 ## 🗂️ Monorepo Structure
 
 ```
 inventory-management-system/
 ├── backend/                          ← Django + DRF (fully built + deployed)
+│   ├── build.sh                      ← Render build script (Root Directory must be "backend" in Render dashboard)
+│   └── ...
 └── frontend/
     └── src/
         ├── api/
@@ -51,11 +66,11 @@ inventory-management-system/
         │   ├── categories/CategoriesPage.tsx   ✅
         │   ├── warehouses/WarehousesPage.tsx   ✅
         │   ├── suppliers/SuppliersPage.tsx     ✅
-        │   ├── stock/StockPage.tsx             ✅ NEW
-        │   ├── orders/PurchaseOrdersPage.tsx   ✅ NEW
-        │   ├── orders/SaleOrdersPage.tsx       ✅ NEW
-        │   ├── alerts/AlertsPage.tsx           ✅ NEW
-        │   └── reports/ReportsPage.tsx         ✅ NEW
+        │   ├── stock/StockPage.tsx             ✅
+        │   ├── orders/PurchaseOrdersPage.tsx   ✅
+        │   ├── orders/SaleOrdersPage.tsx       ✅
+        │   ├── alerts/AlertsPage.tsx           ✅
+        │   └── reports/ReportsPage.tsx         ✅
         ├── routes/ProtectedRoute.tsx  ✅
         ├── stores/authStore.tsx       ✅
         ├── types/index.ts             ✅
@@ -77,6 +92,7 @@ inventory-management-system/
 - **Session 6** — Auth flow + Dashboard + Products page
 - **Session 7** — Categories, Warehouses, Suppliers pages
 - **Session 8** — Stock, PurchaseOrders, SaleOrders, Alerts, Reports pages + App.tsx wired
+- **Session 9** — Fixed Render Root Directory, migrated DB from Render PostgreSQL → Supabase, set up DBeaver for local SQLite
 
 ---
 
@@ -167,7 +183,7 @@ npm run dev
 1. Dashboard low stock panel shows `Product #N` / `Warehouse #N` IDs — needs name join or link to AlertsPage
 2. Frontend not deployed yet — deploy to Vercel next
 3. `CORS_ALLOWED_ORIGINS` on Render needs real Vercel URL after deploy
-4. Render free PostgreSQL expires July 16, 2026
+4. `inventory-db` on Render no longer used (migrated to Supabase) — safe to delete, expires July 16, 2026
 5. Pipfile python_version 3.12 vs virtualenv 3.11.4 — harmless
 6. AlertsPage shows `Product #N` / `Warehouse #N` IDs — the `/reports/low-stock/` API endpoint returns raw IDs, not names. Fix by either: (a) changing the backend view to join product/warehouse names, or (b) fetching all products/warehouses client-side and doing a lookup map
 7. SaleOrder create form uses a numeric customer ID field — ideally this should be a user search/select for better UX, but requires a customer list API endpoint
