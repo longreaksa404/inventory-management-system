@@ -1,5 +1,20 @@
 # ▶️ Next Steps — Start Here
 
+## What Was Done Last Session (Session 9)
+
+- ✅ Fixed Render deployment — set Root Directory to `backend` in Render dashboard so `./build.sh` resolves correctly
+- ✅ Migrated production database from Render PostgreSQL → Supabase PostgreSQL
+  - Created Supabase project in Singapore region (matches Render)
+  - Used **Session Pooler** connection string (not Direct — Render is IPv4-only, Supabase direct uses IPv6)
+  - Updated `DATABASE_URL` env var in Render with Supabase session pooler URI
+  - Django migrations ran successfully — all tables created in Supabase ✅
+- ✅ Connected DBeaver to `backend/db.sqlite3` for local database inspection
+- ✅ Confirmed two-database architecture working:
+  - Local dev → `backend/db.sqlite3` (SQLite)
+  - Production → Supabase PostgreSQL
+
+---
+
 ## What Was Done Last Session (Session 8)
 
 - ✅ Built StockPage (`src/pages/stock/StockPage.tsx`) — paginated transaction list with IN/OUT/ADJ color badges, product/warehouse/type filters, Stock In / Stock Out / Adjust modals. Adjust hidden for non-admins via `isAdmin` from `useAuth()`.
@@ -111,13 +126,17 @@ Options:
 - `sonner` (1.5kb, works great with Tailwind) → `npm install sonner`
 - Add `<Toaster />` in main.tsx, then `toast.success("Order confirmed.")` in each `onSuccess` callback.
 
-### 4. README polish for portfolio
+### 4. Delete old Render PostgreSQL
+- `inventory-db` on Render is no longer used (migrated to Supabase)
+- Expires July 16, 2026 — safe to delete now to keep dashboard clean
+
+### 5. README polish for portfolio
 - Add screenshots of each page
 - Add live demo link
 - Add "Tech Stack" section
 - Record optional 2-min demo video
 
-### 5. Optional improvements (bonus)
+### 6. Optional improvements (bonus)
 - Replace `Product #N` / `Warehouse #N` in AlertsPage with real names (requires joining against products/warehouses queries)
 - Add `useFieldArray` validation messages per row in PO/SO create forms
 - Purchase Orders: add `?page=` + `?search=` to filter bar
@@ -130,17 +149,13 @@ Options:
 Paste this at the start of the next conversation:
 
 > I'm building an IMS fullstack portfolio project.
-> Backend: Django + DRF (deployed on Render).
-> Frontend: React + TypeScript + Vite + TailwindCSS + shadcn/ui.
->
-> All 10 pages are now complete (auth, dashboard, products, categories,
-> warehouses, suppliers, stock transactions, purchase orders, sale orders,
-> low stock alerts, reports).
+> Backend: Django + DRF (deployed on Render, database migrated to Supabase).
+> Frontend: React + TypeScript + Vite + TailwindCSS + shadcn/ui (all 10 pages complete, not yet deployed).
 >
 > Key decisions: React Query, React Hook Form + Zod v4 (no generic on useForm),
 > Context + useReducer for auth, Axios + JWT interceptors.
 >
 > See docs/NEXT_STEPS.md for full context.
 >
-> Next task: Deploy frontend to Vercel. Then add toast notifications with sonner.
-> Then fix the dashboard low stock panel to show product names instead of IDs.
+> Next task: Deploy frontend to Vercel. Set VITE_API_URL env var, update CORS_ALLOWED_ORIGINS on Render.
+> Then add toast notifications with sonner. Then fix dashboard + alerts pages to show names instead of IDs.
