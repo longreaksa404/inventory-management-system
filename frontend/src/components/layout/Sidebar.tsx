@@ -99,10 +99,14 @@ export default function Sidebar() {
     <aside className="flex h-screen w-56 flex-col border-r border-border/50 bg-[#0f1117] text-white">
       {/* Brand */}
       <div className="flex h-14 items-center gap-2.5 border-b border-white/10 px-4">
-        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-white">
-          <span className="text-xs font-bold text-[#0f1117]">IMS</span>
-        </div>
-        <span className="text-sm font-semibold tracking-tight">Inventory</span>
+        <img
+          src="/favicon.svg"
+          alt="IMS"
+          className="h-7 w-7 shrink-0"
+        />
+        <span className="text-sm font-semibold tracking-tight text-white">
+          Inventory
+        </span>
       </div>
 
       {/* Nav */}

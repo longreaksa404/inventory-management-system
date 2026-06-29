@@ -67,14 +67,13 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
       <div className="w-full max-w-sm">
         {/* Brand mark */}
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-foreground">
-            <span className="text-sm font-bold text-background">IMS</span>
-          </div>
-          <h1 className="text-xl font-semibold tracking-tight">
-            Inventory Management
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+        <div className="mb-8 flex flex-col items-center">
+          <img
+            src="/logo.svg"
+            alt="Inventory Management System"
+            className="mb-4 h-16 w-auto"
+          />
+          <p className="text-sm text-muted-foreground">
             Sign in to your account
           </p>
         </div>
