@@ -10,11 +10,11 @@ Complete handoff for continuing development of the IMS backend + React frontend.
 **Type:** Full-stack Inventory Management System
 **Goal:** Portfolio project for fullstack developer interviews
 **Stack:** Django + DRF (backend) + React + TypeScript (frontend)
+**Live Frontend:** https://inventory-management-system-liard-delta.vercel.app
 **Live Backend:** https://inventory-management-system-uet9.onrender.com
 **Swagger Docs:** https://inventory-management-system-uet9.onrender.com/swagger/
 **Admin Panel:** https://inventory-management-system-uet9.onrender.com/admin/
 **GitHub:** https://github.com/longreaksa404/inventory-management-system
-**Frontend:** Not yet deployed — deploy to Vercel next session
 
 ---
 
@@ -23,11 +23,12 @@ Complete handoff for continuing development of the IMS backend + React frontend.
 | Environment | Database | Location |
 |---|---|---|
 | Local dev | SQLite | `backend/db.sqlite3` |
-| Production | PostgreSQL | Supabase (Singapore) |
+| Production | PostgreSQL | Supabase (Singapore, session pooler) |
 
 **Supabase project ID:** `nducnhxvrzxdeucrijeu`
 **Supabase dashboard:** https://supabase.com/dashboard/project/nducnhxvrzxdeucrijeu
-**Connection type used:** Session Pooler (NOT Direct — Render is IPv4-only, Supabase direct uses IPv6)
+**Connection type:** Session Pooler (NOT Direct — Render is IPv4-only)
+**Old Render PostgreSQL:** DELETED (was `inventory-db`, deleted Session 10)
 
 ---
 
@@ -35,33 +36,34 @@ Complete handoff for continuing development of the IMS backend + React frontend.
 
 ```
 inventory-management-system/
-├── backend/                          ← Django + DRF (fully built + deployed)
-│   ├── build.sh                      ← Render build script (Root Directory must be "backend" in Render dashboard)
+├── backend/                          ← Django + DRF (fully built + deployed on Render)
+│   ├── build.sh                      ← Render build script (Root Directory = "backend")
 │   └── ...
 └── frontend/
+    ├── vercel.json                   ✅ SPA rewrite rule for React Router
     └── src/
         ├── api/
-        │   ├── client.ts         ✅ Axios + JWT interceptors
-        │   ├── auth.ts           ✅
-        │   ├── products.ts       ✅ products, categories, stock mutations
-        │   ├── warehouses.ts     ✅
-        │   ├── suppliers.ts      ✅
-        │   ├── orders.ts         ✅ purchase + sale order lifecycle
-        │   └── reports.ts        ✅
+        │   ├── client.ts             ✅ Axios + JWT interceptors
+        │   ├── auth.ts               ✅
+        │   ├── products.ts           ✅
+        │   ├── warehouses.ts         ✅
+        │   ├── suppliers.ts          ✅
+        │   ├── orders.ts             ✅
+        │   └── reports.ts            ✅
         ├── components/
         │   ├── layout/
-        │   │   ├── Sidebar.tsx   ✅
-        │   │   ├── Navbar.tsx    ✅
-        │   │   └── PageLayout.tsx ✅
+        │   │   ├── Sidebar.tsx       ✅
+        │   │   ├── Navbar.tsx        ✅
+        │   │   └── PageLayout.tsx    ✅
         │   └── ui/
-        │       └── button.tsx    ✅
+        │       └── button.tsx        ✅
         ├── hooks/
-        │   └── useAuth.ts        ✅
+        │   └── useAuth.ts            ✅
         ├── lib/
-        │   └── utils.ts          ✅
+        │   └── utils.ts              ✅
         ├── pages/
         │   ├── auth/LoginPage.tsx              ✅
-        │   ├── dashboard/DashboardPage.tsx     ✅
+        │   ├── dashboard/DashboardPage.tsx     ✅ (shows Product #N — needs name fix)
         │   ├── products/ProductsPage.tsx       ✅
         │   ├── categories/CategoriesPage.tsx   ✅
         │   ├── warehouses/WarehousesPage.tsx   ✅
@@ -69,15 +71,15 @@ inventory-management-system/
         │   ├── stock/StockPage.tsx             ✅
         │   ├── orders/PurchaseOrdersPage.tsx   ✅
         │   ├── orders/SaleOrdersPage.tsx       ✅
-        │   ├── alerts/AlertsPage.tsx           ✅
+        │   ├── alerts/AlertsPage.tsx           ✅ (shows Product #N — needs name fix)
         │   └── reports/ReportsPage.tsx         ✅
-        ├── routes/ProtectedRoute.tsx  ✅
-        ├── stores/authStore.tsx       ✅
-        ├── types/index.ts             ✅
-        ├── App.tsx                    ✅ all 10 routes wired
-        ├── App.css                    ✅
-        ├── index.css                  ✅
-        └── main.tsx                   ✅
+        ├── routes/ProtectedRoute.tsx           ✅
+        ├── stores/authStore.tsx                ✅
+        ├── types/index.ts                      ✅
+        ├── App.tsx                             ✅ all 10 routes wired
+        ├── App.css                             ✅
+        ├── index.css                           ✅
+        └── main.tsx                            ✅ (sonner installed, NOT yet wired)
 ```
 
 ---
@@ -92,27 +94,34 @@ inventory-management-system/
 - **Session 6** — Auth flow + Dashboard + Products page
 - **Session 7** — Categories, Warehouses, Suppliers pages
 - **Session 8** — Stock, PurchaseOrders, SaleOrders, Alerts, Reports pages + App.tsx wired
-- **Session 9** — Fixed Render Root Directory, migrated DB from Render PostgreSQL → Supabase, set up DBeaver for local SQLite
+- **Session 9** — Fixed Render Root Directory, migrated DB to Supabase, set up DBeaver
+- **Session 10** — Deployed frontend to Vercel, added vercel.json SPA fix, installed sonner, deleted old Render PostgreSQL
 
 ---
 
 ## 📊 Frontend Pages Status
 
-| Page | Status |
-|---|---|
-| Login | ✅ Done |
-| Dashboard | ✅ Done |
-| Products | ✅ Done |
-| Categories | ✅ Done |
-| Warehouses | ✅ Done |
-| Suppliers | ✅ Done |
-| Stock Transactions | ✅ Done |
-| Purchase Orders | ✅ Done |
-| Sale Orders | ✅ Done |
-| Low Stock Alerts | ✅ Done |
-| Reports | ✅ Done |
+| Page | Status | Notes |
+|---|---|---|
+| Login | ✅ Done | |
+| Dashboard | ✅ Done | Low stock panel shows Product #N / Warehouse #N |
+| Products | ✅ Done | |
+| Categories | ✅ Done | |
+| Warehouses | ✅ Done | |
+| Suppliers | ✅ Done | |
+| Stock Transactions | ✅ Done | |
+| Purchase Orders | ✅ Done | |
+| Sale Orders | ✅ Done | |
+| Low Stock Alerts | ✅ Done | Shows Product #N / Warehouse #N |
+| Reports | ✅ Done | |
 
-**MVP is feature-complete. Next step: deploy + polish.**
+---
+
+## 📦 Installed Packages (not yet wired)
+
+| Package | Status | Notes |
+|---|---|---|
+| `sonner` | Installed, NOT wired | Add Toaster to main.tsx, toast calls to all mutation pages |
 
 ---
 
@@ -144,11 +153,11 @@ const onSubmit = handleSubmit((values) => { myMutation.mutate(values) })
 
 | Pattern | Implementation |
 |---|---|
-| Empty optional field in table | `<span className="italic text-muted-foreground/50">—</span>` |
-| Skeleton loading rows | `Array.from({ length: N }).map((_, i) => ...)` with animate-pulse divs |
+| Empty optional field | `<span className="italic text-muted-foreground/50">—</span>` |
+| Skeleton loading rows | `Array.from({ length: N }).map((_, i) => ...)` with animate-pulse |
 | Search debounce | `let searchTimeout = 0` + `window.setTimeout(..., 400)` |
 | Modal scroll | `max-h-[90vh] overflow-y-auto` on modal container |
-| Action buttons row | edit: `hover:bg-muted`, delete: `hover:bg-red-50 hover:text-red-500` |
+| Action buttons | edit: `hover:bg-muted`, delete: `hover:bg-red-50 hover:text-red-500` |
 | Primary button | `bg-foreground text-background hover:opacity-90` |
 | Danger button | `bg-red-500 text-white hover:bg-red-600` |
 | Dynamic form rows | `useFieldArray` from react-hook-form |
@@ -156,6 +165,8 @@ const onSubmit = handleSubmit((values) => { myMutation.mutate(values) })
 | Stock type badge | IN=green-50/green-700, OUT=red-50/red-600, ADJ=blue-50/blue-700 |
 | Order status badge | per-status config object mapping status → label + className |
 | Severity bar | ratio-based width %, red/amber fill based on qty/reorder_level |
+| Toast success | `toast.success("Action done")` from sonner |
+| Toast error | `toast.error("Something went wrong.")` from sonner |
 
 ---
 
@@ -180,10 +191,8 @@ npm run dev
 
 ## ⚠️ Known Issues
 
-1. Dashboard low stock panel shows `Product #N` / `Warehouse #N` IDs — needs name join or link to AlertsPage
-2. Frontend not deployed yet — deploy to Vercel next
-3. `CORS_ALLOWED_ORIGINS` on Render needs real Vercel URL after deploy
-4. `inventory-db` on Render no longer used (migrated to Supabase) — safe to delete, expires July 16, 2026
-5. Pipfile python_version 3.12 vs virtualenv 3.11.4 — harmless
-6. AlertsPage shows `Product #N` / `Warehouse #N` IDs — the `/reports/low-stock/` API endpoint returns raw IDs, not names. Fix by either: (a) changing the backend view to join product/warehouse names, or (b) fetching all products/warehouses client-side and doing a lookup map
-7. SaleOrder create form uses a numeric customer ID field — ideally this should be a user search/select for better UX, but requires a customer list API endpoint
+1. Dashboard low stock panel shows `Product #N` / `Warehouse #N` — needs name join
+2. AlertsPage shows `Product #N` / `Warehouse #N` — same issue, `/reports/low-stock/` returns raw IDs
+3. SaleOrder create form uses raw numeric customer ID field — poor UX, low priority
+4. `sonner` installed but not wired into main.tsx or any page yet
+5. README needs live URL, screenshots, and tech stack section

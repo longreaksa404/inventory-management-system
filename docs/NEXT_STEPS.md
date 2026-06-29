@@ -1,146 +1,86 @@
 # ▶️ Next Steps — Start Here
 
-## What Was Done Last Session (Session 9)
+## What Was Done Last Session (Session 10)
 
-- ✅ Fixed Render deployment — set Root Directory to `backend` in Render dashboard so `./build.sh` resolves correctly
-- ✅ Migrated production database from Render PostgreSQL → Supabase PostgreSQL
-  - Created Supabase project in Singapore region (matches Render)
-  - Used **Session Pooler** connection string (not Direct — Render is IPv4-only, Supabase direct uses IPv6)
-  - Updated `DATABASE_URL` env var in Render with Supabase session pooler URI
-  - Django migrations ran successfully — all tables created in Supabase ✅
-- ✅ Connected DBeaver to `backend/db.sqlite3` for local database inspection
-- ✅ Confirmed two-database architecture working:
-  - Local dev → `backend/db.sqlite3` (SQLite)
-  - Production → Supabase PostgreSQL
+- ✅ Deployed frontend to Vercel: https://inventory-management-system-liard-delta.vercel.app
+- ✅ Added `frontend/vercel.json` with SPA rewrite rule to fix React Router 404 on refresh
+- ✅ Installed `sonner` toast library (`npm install sonner`) — NOT yet wired in, deferred to next session
+- ✅ Deleted old Render PostgreSQL (`inventory-db`) — no longer needed, migrated to Supabase
+- ✅ Updated `CORS_ALLOWED_ORIGINS` on Render with Vercel URL
 
 ---
 
-## What Was Done Last Session (Session 8)
+## Current Architecture (Production)
 
-- ✅ Built StockPage (`src/pages/stock/StockPage.tsx`) — paginated transaction list with IN/OUT/ADJ color badges, product/warehouse/type filters, Stock In / Stock Out / Adjust modals. Adjust hidden for non-admins via `isAdmin` from `useAuth()`.
-- ✅ Built PurchaseOrdersPage (`src/pages/orders/PurchaseOrdersPage.tsx`) — paginated list, expandable row with item detail, create order form with dynamic item array (useFieldArray), confirm + receive lifecycle with confirmation dialogs.
-- ✅ Built SaleOrdersPage (`src/pages/orders/SaleOrdersPage.tsx`) — same pattern as PO page, confirm + ship + invoice lifecycle, discount field per item, stock-check error surfaced from API.
-- ✅ Built AlertsPage (`src/pages/alerts/AlertsPage.tsx`) — read-only list sorted by severity (out of stock → critical → low), severity bar with ratio-based width, summary badges in header.
-- ✅ Built ReportsPage (`src/pages/reports/ReportsPage.tsx`) — 4 sections: inventory value, low stock summary with bar indicators, category bar + pie charts (recharts), transaction history table.
-- ✅ Updated App.tsx — all 10 routes wired, no more ComingSoon placeholders.
-
----
-
-## Current Folder Structure (frontend/src) — COMPLETE STATE
-
-```
-frontend/src/
-├── api/
-│   ├── client.ts         ✅
-│   ├── auth.ts           ✅
-│   ├── products.ts       ✅
-│   ├── warehouses.ts     ✅
-│   ├── suppliers.ts      ✅
-│   ├── orders.ts         ✅
-│   └── reports.ts        ✅
-├── components/
-│   ├── layout/
-│   │   ├── Sidebar.tsx   ✅
-│   │   ├── Navbar.tsx    ✅
-│   │   └── PageLayout.tsx ✅
-│   └── ui/
-│       └── button.tsx    ✅
-├── hooks/
-│   └── useAuth.ts        ✅
-├── lib/
-│   └── utils.ts          ✅
-├── pages/
-│   ├── auth/
-│   │   └── LoginPage.tsx          ✅
-│   ├── dashboard/
-│   │   └── DashboardPage.tsx      ✅
-│   ├── products/
-│   │   └── ProductsPage.tsx       ✅
-│   ├── categories/
-│   │   └── CategoriesPage.tsx     ✅
-│   ├── warehouses/
-│   │   └── WarehousesPage.tsx     ✅
-│   ├── suppliers/
-│   │   └── SuppliersPage.tsx      ✅
-│   ├── stock/
-│   │   └── StockPage.tsx          ✅
-│   ├── orders/
-│   │   ├── PurchaseOrdersPage.tsx ✅
-│   │   └── SaleOrdersPage.tsx     ✅
-│   ├── alerts/
-│   │   └── AlertsPage.tsx         ✅
-│   └── reports/
-│       └── ReportsPage.tsx        ✅
-├── routes/
-│   └── ProtectedRoute.tsx  ✅
-├── stores/
-│   └── authStore.tsx       ✅
-├── types/
-│   └── index.ts            ✅
-├── App.tsx                 ✅ (all 10 routes live)
-├── App.css                 ✅
-├── index.css               ✅
-└── main.tsx                ✅
-```
-
----
-
-## Pages Status
-
-| Page | Status |
-|---|---|
-| Login | ✅ Done |
-| Dashboard | ✅ Done |
-| Products | ✅ Done |
-| Categories | ✅ Done |
-| Warehouses | ✅ Done |
-| Suppliers | ✅ Done |
-| Stock Transactions | ✅ Done |
-| Purchase Orders | ✅ Done |
-| Sale Orders | ✅ Done |
-| Low Stock Alerts | ✅ Done |
-| Reports | ✅ Done |
-
-**All pages are complete. The MVP is feature-complete.**
+| Layer | Service | URL |
+|---|---|---|
+| Frontend | Vercel | https://inventory-management-system-liard-delta.vercel.app |
+| Backend | Render | https://inventory-management-system-uet9.onrender.com |
+| Database | Supabase PostgreSQL | Singapore region, session pooler |
+| Cache/Queue | Upstash Redis | via REDIS_URL env var on Render |
 
 ---
 
 ## Immediate Next Actions (in priority order)
 
-### 1. Deploy frontend to Vercel
-- Push everything to GitHub
-- Connect repo to Vercel (root: `frontend`, build: `npm run build`, output: `dist`)
-- Set env var: `VITE_API_URL=https://inventory-management-system-uet9.onrender.com`
-- After deploy, update `CORS_ALLOWED_ORIGINS` on Render to include the Vercel URL
+### 1. Wire sonner toast notifications
+`sonner` is already installed. Just needs to be wired in.
 
-### 2. Fix Dashboard low stock panel to show names not IDs
-The current dashboard low stock panel shows `Product #N` and `Warehouse #N`.
-Now that AlertsPage is built and working, this should resolve by fetching
-the full low stock alert list from the reports API which already includes names via
-the serializer — OR wire up the existing `/reports/low-stock/` API response to also
-join product/warehouse names. Best quick fix: just link to AlertsPage from the dashboard panel.
+**Step 1 — `frontend/src/main.tsx`:**
+Add these two changes (file is ready in docs/NEXT_STEPS.md):
+```tsx
+import { Toaster } from "sonner"
+// inside JSX before </StrictMode>:
+<Toaster richColors position="top-right" closeButton />
+```
 
-### 3. Add toast notifications (success/error feedback)
-Currently mutations succeed silently. Add a lightweight toast.
-Options:
-- `sonner` (1.5kb, works great with Tailwind) → `npm install sonner`
-- Add `<Toaster />` in main.tsx, then `toast.success("Order confirmed.")` in each `onSuccess` callback.
+**Step 2 — Add `import { toast } from "sonner"` to each page and add onSuccess/onError:**
 
-### 4. Delete old Render PostgreSQL
-- `inventory-db` on Render is no longer used (migrated to Supabase)
-- Expires July 16, 2026 — safe to delete now to keep dashboard clean
+Pages that need toasts (all mutations):
+- `src/pages/products/ProductsPage.tsx` — create, update, delete
+- `src/pages/categories/CategoriesPage.tsx` — create, update, delete
+- `src/pages/warehouses/WarehousesPage.tsx` — create, update, delete
+- `src/pages/suppliers/SuppliersPage.tsx` — create, update, delete
+- `src/pages/stock/StockPage.tsx` — stock in, stock out, adjust
+- `src/pages/orders/PurchaseOrdersPage.tsx` — create, confirm, receive
+- `src/pages/orders/SaleOrdersPage.tsx` — create, confirm, ship, invoice
 
-### 5. README polish for portfolio
-- Add screenshots of each page
-- Add live demo link
-- Add "Tech Stack" section
+**Pattern to use in every mutation:**
+```tsx
+const createMutation = useMutation({
+  mutationFn: productsApi.createProduct,
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ["products"] })
+    toast.success("Product created successfully")
+    onClose()
+  },
+  onError: () => {
+    toast.error("Failed to create product. Please try again.")
+  },
+})
+```
+
+### 2. Fix Product/Warehouse names in AlertsPage and Dashboard
+Both pages show `Product #N` / `Warehouse #N` instead of real names.
+The `/reports/low-stock/` API returns raw IDs only.
+
+**Two options:**
+- **Backend fix (cleaner):** Update `LowStockReportView` in `backend/apps/reports/views.py` to join product name and warehouse name in the response
+- **Frontend fix (faster):** In AlertsPage and DashboardPage, fetch all products + warehouses and build a lookup map
+
+Recommended: backend fix. Change the response shape to include `product_name` and `warehouse_name`.
+
+### 3. README polish for portfolio
+- Add live demo URL (Vercel)
+- Add screenshots of Dashboard, Products, Orders pages
+- Add tech stack badges
+- Add "How to run locally" section for both backend and frontend
 - Record optional 2-min demo video
 
-### 6. Optional improvements (bonus)
-- Replace `Product #N` / `Warehouse #N` in AlertsPage with real names (requires joining against products/warehouses queries)
-- Add `useFieldArray` validation messages per row in PO/SO create forms
-- Purchase Orders: add `?page=` + `?search=` to filter bar
-- Sale Orders: same
+### 4. SaleOrder create form UX improvement
+Currently uses a raw numeric customer ID field — poor UX.
+Requires a customer list endpoint or filtering users by role=customer.
+Low priority — can stay as-is for portfolio.
 
 ---
 
@@ -149,13 +89,17 @@ Options:
 Paste this at the start of the next conversation:
 
 > I'm building an IMS fullstack portfolio project.
-> Backend: Django + DRF (deployed on Render, database migrated to Supabase).
-> Frontend: React + TypeScript + Vite + TailwindCSS + shadcn/ui (all 10 pages complete, not yet deployed).
+> Backend: Django + DRF (deployed on Render, database on Supabase PostgreSQL).
+> Frontend: React + TypeScript + Vite + TailwindCSS (deployed on Vercel).
+>
+> Live URLs:
+> - Frontend: https://inventory-management-system-liard-delta.vercel.app
+> - Backend: https://inventory-management-system-uet9.onrender.com
 >
 > Key decisions: React Query, React Hook Form + Zod v4 (no generic on useForm),
-> Context + useReducer for auth, Axios + JWT interceptors.
+> Context + useReducer for auth, Axios + JWT interceptors, sonner installed but not yet wired.
 >
-> See docs/NEXT_STEPS.md for full context.
+> See docs/NEXT_STEPS.md and docs/PROJECT_HANDOFF.md for full context.
 >
-> Next task: Deploy frontend to Vercel. Set VITE_API_URL env var, update CORS_ALLOWED_ORIGINS on Render.
-> Then add toast notifications with sonner. Then fix dashboard + alerts pages to show names instead of IDs.
+> Next task: Wire sonner toast notifications across all mutation pages, then fix
+> Product/Warehouse names in AlertsPage and Dashboard, then README polish.
