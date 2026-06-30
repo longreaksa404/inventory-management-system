@@ -1,22 +1,12 @@
 # ▶️ Next Steps — Start Here
 
-## What Was Done Last Session (Session 15)
+## What Was Done Last Session (Session 17)
 
-- ✅ **New scope identified and built — Customer management.** While verifying Tier 2 (Sale Order customer dropdown), discovered there was **no way to create a customer at all** through the app — `RegistrationSerializer` always force-sets `role='staff'`, and `role` is read-only on that serializer by design (prevents self-registering admins). The only `role="customer"` users that ever existed were manually seeded via Django admin/shell/fixtures. Closed this gap with a full build:
-  - **Backend:**
-    - New `apps/accounts/permissions.py` → `CustomerPermission`: any authenticated user can list/create customers (staff need this to quick-add a customer mid-order); editing/deactivating an existing customer is restricted to `role in ("admin", "manager")`.
-    - New `CustomerSerializer` in `apps/accounts/serializers.py` — separate from `RegistrationSerializer` on purpose (no password collected; customers don't log in through this system; `role` force-set server-side to `'customer'`; `username` falls back to `email` if not supplied).
-    - New `CustomerListCreateView` / `CustomerDetailView` in `apps/accounts/views.py`, mounted at `POST/GET /api/v1/accounts/customers/` and `GET/PATCH /api/v1/accounts/customers/{id}/`.
-    - **Deliberately no DELETE** — `SaleOrder.customer` is `on_delete=PROTECT`, so a real delete would 500 once a customer has orders. `is_active` toggle via `PATCH` is the supported way to retire a customer record (same pattern you'd want for any audit-trail-sensitive entity in this system).
-  - **Frontend:**
-    - New `src/api/customers.ts` — `getCustomers`, `getCustomer`, `createCustomer`, `updateCustomer`.
-    - New `Customer` / `CustomerPayload` types in `src/types/index.ts`.
-    - New `src/pages/customers/CustomersPage.tsx` — full CRUD-style page matching the existing Suppliers/Warehouses pattern (search, table, create/edit modal, active/inactive badge + toggle button instead of delete).
-    - Exported `CustomerForm` from that page so it can be reused for the inline quick-create.
-    - **Inline quick-create (Option B):** `SaleOrdersPage.tsx` → `CreateSOForm` now has a small "+" button next to the customer dropdown that opens `CustomerForm` in a modal. On success it invalidates the `["users", {role:"customer"}]` query (so the dropdown picks up the new customer) and auto-selects the new customer in the form via `setValue("customer", customer.id)`.
-    - New route `/customers` in `App.tsx` (lazy-loaded), new sidebar nav item under "Operations" (visible to all roles — server-side permission already gates editing to admin/manager).
-- ✅ **Tier 2 — customer dropdown label finalized as part of this work.** Earlier in the session, settled on **name + phone** (`{first_name} {last_name} ({phone_number})`) instead of the original `CT00XX` internal ID — matches the `+855xxxxxxxx` field already validated on `CustomUser`, falls back to plain name if phone is blank. Price auto-fill was independently verified correct, no changes needed there.
-- ⚠️ **Known limitation, not addressed this session:** `CustomerListCreateView` is paginated at the global `PAGE_SIZE=50` like every other list endpoint. Past 50 customers, both the `/customers` management page and the Sale Order dropdown will only show the first page unless pagination/search is added to the dropdown UX. Flagged for later, not urgent at current scale.
+- ✅ **Ran the Customer test suite against the live repo** (as instructed at the end of Session 16) — **68 passed, 5 failed**, all 5 failures from the same root cause.
+- 🐛 **Found and fixed a real production bug, not a test bug.** `CustomUserManager.create_user()` (in `apps/accounts/models.py`) unconditionally requires a `phone_number` for every non-superuser account. `CustomerSerializer` treats `phone_number` as optional (model field is `blank=True, default=''`), and customer records never log in, so there was never a reason to enforce a phone for them — but the manager's guard predates the Customer feature (Session 15) and was never updated to account for it. Result: **any customer created without a phone number 500'd** instead of either succeeding or returning a clean 400. This would have hit real users immediately — the "+ New customer" quick-create form in `SaleOrdersPage.tsx` doesn't require a phone number, so any staff member quick-adding a customer without one would have silently failed with an Internal Server Error.
+  - **Fix:** `create_user()` now also exempts `role == 'customer'` from the phone requirement, alongside the existing `is_superuser` exemption. Patch delivered as `backend/apps/accounts/models_create_user_patch.py` — paste the `create_user` method over the existing one in `apps/accounts/models.py` inside `CustomUserManager`. No other part of the file changes.
+  - **Failed tests, now expected to pass once the patch is applied:** `test_admin_can_create_customer`, `test_role_cannot_be_overridden_from_input`, `test_username_falls_back_to_email_when_not_provided`, `test_username_explicit_value_is_respected`, `test_created_customer_has_unusable_password`. All five omitted `phone_number` in the request body, which is exactly the legitimate path the quick-create form uses.
+- ⚠️ **Not done yet:** applying the patch to the real `apps/accounts/models.py` and re-running the suite to confirm all 73 tests pass. Also still outstanding: the manual browser verification of the Sale Order quick-create-customer modal flow (carried over from Session 15/16) — this bug makes that check even more important, since it's likely the exact path that would have surfaced this in the browser as a 500 toast.
 
 ---
 
@@ -33,6 +23,15 @@
 
 ## Immediate Next Actions (in priority order)
 
+### 1. Apply the phone_number patch (blocking everything else)
+- Open `apps/accounts/models.py`, find `CustomUserManager.create_user()`, replace it with the version in `backend/apps/accounts/models_create_user_patch.py`.
+- Re-run: `pytest tests/api/test_api_customers.py -v` — expect 14/14 passing in that file, 73/73 in the full suite.
+- No migration needed — this is pure Python logic in the manager, not a schema change.
+
+### 2. Manual browser verification (carried over from Session 15/16, now higher priority)
+- Open the Sale Order form → "+ New customer" → submit **without** a phone number → confirm it now succeeds (pre-patch this would have 500'd) → confirm the modal closes, the new customer is auto-selected via `setValue("customer", customer.id)`, and the sale order submits end-to-end.
+- Also test the same flow **with** a phone number to confirm no regression.
+
 ### Tier 1 — ✅ DONE (Session 13)
 Low stock alert bug fully diagnosed and fixed.
 
@@ -42,21 +41,16 @@ Sale Order form UX: price auto-fill verified correct; customer dropdown changed 
 ### Tier 3 — ✅ DONE (Session 14)
 Async polling after Ship/Receive (`useOrderStatusPolling` hook, used in both order pages).
 
-### New — ✅ DONE (Session 15)
-Customer management (full CRUD page + inline quick-create from Sale Order form). See summary above.
+### Customer management — ✅ DONE (Session 15), test coverage ✅ DONE (Session 16), phone_number bug found + fix delivered (Session 17, not yet applied)
 
-**Required follow-up, not done yet — write tests.** This was a fast feature build with zero test coverage added. Before calling it done-done:
-- Backend: `tests/api/test_api_customers.py` — covers create (any authenticated user incl. plain staff), list with search, PATCH restricted to admin/manager (403 for staff), `is_active` toggle behavior, and that `username` correctly falls back to `email`.
-- Confirm in the browser: quick-create modal actually closes, selects the new customer, and the Sale Order submits correctly end-to-end.
-
-### Tier 4 — New pages (next up after the test coverage above)
+### Tier 4 — New pages (start once steps 1–2 above are confirmed)
 **1. User management page**
 - Backend: add `PATCH /api/v1/accounts/{id}/` accepting `{role}` and/or `{is_active}`, admin-only permission
 - Frontend: new page at `/users`, admin-only route guard, hidden from sidebar for non-admins
 - Table: name, email, role badge, active/inactive toggle, date joined
 - Search/filter by name or email
 - Not started yet
-- Note: this is a *different* endpoint/page from the new Customer management above — `/accounts/{id}/` (any role) vs `/accounts/customers/{id}/` (customers only). Don't conflate them.
+- Note: this is a *different* endpoint/page from the existing Customer management — `/accounts/{id}/` (any role) vs `/accounts/customers/{id}/` (customers only). Don't conflate them.
 
 **2. Product detail page**
 - New route `/products/:id`
@@ -90,7 +84,8 @@ Customer management (full CRUD page + inline quick-create from Sale Order form).
 | ReportsPage bar labels show `Product #N` | `ReportsPage.tsx` `LowStockSection` | Still open — API now returns `product_name`, one-line fix |
 | Polling hook has no unmount cleanup | `frontend/src/hooks/useOrderStatusPolling.ts` | Low-risk, optional follow-up |
 | Customer endpoints paginated at 50 | `apps/accounts/views.py` `CustomerListCreateView` | Fine now, flagged for later if customer count grows past one page |
-| **No test coverage on new Customer endpoints/pages** | `apps/accounts/views.py`, `CustomersPage.tsx` | **New this session — write `test_api_customers.py` before moving to Tier 4** |
+| **Customer creation without a phone number 500s** | `apps/accounts/models.py` `CustomUserManager.create_user()` | **NEW, found Session 17 via the test suite — fix written (`models_create_user_patch.py`) but not yet applied to the live repo. This is a real bug affecting the quick-create-customer flow used from the Sale Order form, not just a test issue.** |
+| Quick-create modal flow not yet manually verified end-to-end in browser | `SaleOrdersPage.tsx` | Carried over from Session 15/16 — higher priority now given the bug above |
 
 ---
 
@@ -108,9 +103,9 @@ Paste this at the start of the next conversation:
 >
 > See docs/NEXT_STEPS.md, docs/PROJECT_HANDOFF.md, and docs/PROJECT_PLAN.md (Phase 6) for full context.
 >
-> Session 15 just completed: built full Customer management (backend `CustomerListCreateView`/`CustomerDetailView` + `CustomerPermission`, frontend `CustomersPage.tsx` + inline quick-create from the Sale Order form). This wasn't in the original backlog — it surfaced because there was no way to create a customer at all before this. Tier 2 (Sale Order dropdown UX) and Tier 3 (async polling) are also done from prior sessions.
+> Session 17 just completed: ran the new `test_api_customers.py` suite against the real repo — 68 passed, 5 failed, all five from the same root cause. Found a real bug: `CustomUserManager.create_user()` requires a `phone_number` for every non-superuser account, but `CustomerSerializer` treats phone as optional and customer accounts never log in, so creating a customer without a phone number 500s. This is a real production bug, not just a test gap — the Sale Order "+ New customer" quick-create form doesn't require a phone, so this would hit real users. Fix delivered as `backend/apps/accounts/models_create_user_patch.py` (exempt `role == 'customer'` from the phone requirement, same way superusers are already exempt) but not yet applied to the actual repo file.
 >
-> Next task: write backend test coverage for the new customer endpoints (`tests/api/test_api_customers.py` — creation by plain staff, search, admin/manager-only PATCH, is_active toggle, username-falls-back-to-email), then manually verify the quick-create modal flow in the browser. After that, move to Tier 4 in order: user management page (admin-only, different from customer management — don't conflate the two), product detail page, dark mode toggle.
+> Next task: apply that patch to `apps/accounts/models.py`, re-run the full test suite to confirm 73/73 pass, then do the manual browser check of the Sale Order quick-create-customer flow — test both with and without a phone number, since the bug specifically affects the no-phone path. After both are confirmed, move to Tier 4 in order: user management page (admin-only, different from customer management — don't conflate the two), product detail page, dark mode toggle.
 >
 > Tier 5 items (product picture, Celery Beat in production) are still blocked on my decisions — don't start those until I confirm Cloudinary vs base64, and whether to deploy a second Render worker for Celery Beat.
 >
