@@ -22,6 +22,7 @@ import { productsApi } from "@/api/products"
 import { warehousesApi } from "@/api/warehouses"
 import type { SaleOrder, OrderStatus } from "@/types"
 import { authApi } from "@/api/auth"
+import { useOrderStatusPolling } from "@/hooks/useOrderStatusPolling"
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 
@@ -346,11 +347,13 @@ function SaleOrderRow({
   onConfirm,
   onShip,
   onInvoice,
+  isPolling,
 }: {
   order: SaleOrder
   onConfirm: (id: number) => void
   onShip: (id: number) => void
   onInvoice: (id: number) => void
+  isPolling: boolean
 }) {
   const [expanded, setExpanded] = useState(false)
 
@@ -374,29 +377,38 @@ function SaleOrderRow({
         </td>
         <td className="px-4 py-3">
           <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-            {order.status === "draft" && (
-              <button
-                onClick={() => onConfirm(order.id)}
-                className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 transition-colors"
-              >
-                <CheckCircle className="h-3.5 w-3.5" /> Confirm
-              </button>
-            )}
-            {order.status === "confirmed" && (
-              <button
-                onClick={() => onShip(order.id)}
-                className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-indigo-600 hover:bg-indigo-50 transition-colors"
-              >
-                <Truck className="h-3.5 w-3.5" /> Ship
-              </button>
-            )}
-            {order.status === "shipped" && (
-              <button
-                onClick={() => onInvoice(order.id)}
-                className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-purple-600 hover:bg-purple-50 transition-colors"
-              >
-                <FileText className="h-3.5 w-3.5" /> Invoice
-              </button>
+            {isPolling ? (
+              <span className="flex items-center gap-1.5 px-2 py-1 text-xs text-muted-foreground">
+                <span className="h-3 w-3 animate-spin rounded-full border-2 border-muted border-t-foreground" />
+                Processing…
+              </span>
+            ) : (
+              <>
+                {order.status === "draft" && (
+                  <button
+                    onClick={() => onConfirm(order.id)}
+                    className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 transition-colors"
+                  >
+                    <CheckCircle className="h-3.5 w-3.5" /> Confirm
+                  </button>
+                )}
+                {order.status === "confirmed" && (
+                  <button
+                    onClick={() => onShip(order.id)}
+                    className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-indigo-600 hover:bg-indigo-50 transition-colors"
+                  >
+                    <Truck className="h-3.5 w-3.5" /> Ship
+                  </button>
+                )}
+                {order.status === "shipped" && (
+                  <button
+                    onClick={() => onInvoice(order.id)}
+                    className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-purple-600 hover:bg-purple-50 transition-colors"
+                  >
+                    <FileText className="h-3.5 w-3.5" /> Invoice
+                  </button>
+                )}
+              </>
             )}
             {expanded ? (
               <ChevronUp className="h-4 w-4 text-muted-foreground" />
@@ -448,6 +460,11 @@ export default function SaleOrdersPage() {
   const [shipId, setShipId] = useState<number | null>(null)
   const [invoiceId, setInvoiceId] = useState<number | null>(null)
 
+  const { pollingIds, startPolling } = useOrderStatusPolling(
+    ordersApi.getSaleOrder,
+    ["sale-orders"]
+  )
+
   const { data, isLoading } = useQuery({
     queryKey: ["sale-orders", { page, status: statusFilter }],
     queryFn: () => ordersApi.getSaleOrders({ page, status: statusFilter || undefined }),
@@ -460,7 +477,11 @@ export default function SaleOrdersPage() {
 
   const shipMutation = useMutation({
     mutationFn: ordersApi.shipSaleOrder,
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["sale-orders"] }); setShipId(null) },
+    onSuccess: (_data, id) => {
+      setShipId(null)
+      // 202 Accepted — poll until the order leaves "confirmed" or 15s elapses.
+      startPolling(id, "confirmed")
+    },
   })
 
   const invoiceMutation = useMutation({
@@ -543,6 +564,7 @@ export default function SaleOrdersPage() {
                   onConfirm={setConfirmId}
                   onShip={setShipId}
                   onInvoice={setInvoiceId}
+                  isPolling={pollingIds.has(order.id)}
                 />
               ))
             )}
