@@ -150,16 +150,15 @@ class SaleOrder(BaseOrder):
 
                 product.quantity -= item.quantity
                 product.save()
-
-                # FIX 2: LowStockAlert.warehouse was not passed, causing
-                # IntegrityError because warehouse is a required non-null FK.
                 if product.quantity <= product.reorder_level:
-                    # Import here to avoid circular import at module level
                     from apps.reports.models import LowStockAlert
-                    LowStockAlert.objects.get_or_create(
+                    LowStockAlert.objects.update_or_create(
                         product=product,
                         warehouse=self.warehouse,
-                        defaults={"quantity": product.quantity, "reorder_level": product.reorder_level},
+                        defaults={
+                            "quantity": product.quantity,
+                            "reorder_level": product.reorder_level,
+                        },
                     )
 
             self.status = 'shipped'
