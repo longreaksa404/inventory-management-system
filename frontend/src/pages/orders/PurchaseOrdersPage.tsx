@@ -21,6 +21,7 @@ import { productsApi } from "@/api/products"
 import { suppliersApi } from "@/api/suppliers"
 import { warehousesApi } from "@/api/warehouses"
 import type { PurchaseOrder, OrderStatus } from "@/types"
+import { useOrderStatusPolling } from "@/hooks/useOrderStatusPolling"
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 
@@ -336,10 +337,12 @@ function OrderRow({
   order,
   onConfirm,
   onReceive,
+  isPolling,
 }: {
   order: PurchaseOrder
   onConfirm: (id: number) => void
   onReceive: (id: number) => void
+  isPolling: boolean
 }) {
   const [expanded, setExpanded] = useState(false)
 
@@ -371,21 +374,30 @@ function OrderRow({
         </td>
         <td className="px-4 py-3">
           <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-            {order.status === "draft" && (
-              <button
-                onClick={() => onConfirm(order.id)}
-                className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 transition-colors"
-              >
-                <CheckCircle className="h-3.5 w-3.5" /> Confirm
-              </button>
-            )}
-            {order.status === "confirmed" && (
-              <button
-                onClick={() => onReceive(order.id)}
-                className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-green-600 hover:bg-green-50 transition-colors"
-              >
-                <PackageCheck className="h-3.5 w-3.5" /> Receive
-              </button>
+            {isPolling ? (
+              <span className="flex items-center gap-1.5 px-2 py-1 text-xs text-muted-foreground">
+                <span className="h-3 w-3 animate-spin rounded-full border-2 border-muted border-t-foreground" />
+                Processing…
+              </span>
+            ) : (
+              <>
+                {order.status === "draft" && (
+                  <button
+                    onClick={() => onConfirm(order.id)}
+                    className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 transition-colors"
+                  >
+                    <CheckCircle className="h-3.5 w-3.5" /> Confirm
+                  </button>
+                )}
+                {order.status === "confirmed" && (
+                  <button
+                    onClick={() => onReceive(order.id)}
+                    className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-green-600 hover:bg-green-50 transition-colors"
+                  >
+                    <PackageCheck className="h-3.5 w-3.5" /> Receive
+                  </button>
+                )}
+              </>
             )}
             {expanded ? (
               <ChevronUp className="h-4 w-4 text-muted-foreground" />
@@ -429,6 +441,11 @@ export default function PurchaseOrdersPage() {
   const [confirmId, setConfirmId] = useState<number | null>(null)
   const [receiveId, setReceiveId] = useState<number | null>(null)
 
+  const { pollingIds, startPolling } = useOrderStatusPolling(
+    ordersApi.getPurchaseOrder,
+    ["purchase-orders"]
+  )
+
   const { data, isLoading } = useQuery({
     queryKey: ["purchase-orders", { page, status: statusFilter }],
     queryFn: () => ordersApi.getPurchaseOrders({ page, status: statusFilter || undefined }),
@@ -444,9 +461,11 @@ export default function PurchaseOrdersPage() {
 
   const receiveMutation = useMutation({
     mutationFn: ordersApi.receivePurchaseOrder,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["purchase-orders"] })
+    onSuccess: (_data, id) => {
       setReceiveId(null)
+      // 202 Accepted — Celery hasn't finished yet. Poll until the order
+      // leaves "confirmed" (or 15s elapses), then refresh the list.
+      startPolling(id, "confirmed")
     },
   })
 
@@ -524,6 +543,7 @@ export default function PurchaseOrdersPage() {
                   order={order}
                   onConfirm={setConfirmId}
                   onReceive={setReceiveId}
+                  isPolling={pollingIds.has(order.id)}
                 />
               ))
             )}
