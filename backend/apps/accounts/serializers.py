@@ -57,3 +57,32 @@ class UserListSerializer(serializers.ModelSerializer):
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True, min_length=1)
     new_password = serializers.CharField(required=True, min_length=8)
+
+
+class CustomerSerializer(serializers.ModelSerializer):
+    """
+    Dedicated serializer for customer records (CustomUser with role="customer").
+    Separate from RegistrationSerializer on purpose: customers don't log in
+    through this system, so no password is collected here, and role is
+    force-set server-side rather than read from input — same security
+    reasoning as RegistrationSerializer's read_only role/is_staff fields.
+    """
+    class Meta:
+        model = CustomUser
+        fields = [
+            'id', 'first_name', 'last_name', 'email',
+            'phone_number', 'username', 'is_active', 'date_joined',
+        ]
+        read_only_fields = ['id', 'date_joined']
+        extra_kwargs = {
+            'username': {'required': False},
+        }
+
+    def create(self, validated_data):
+        validated_data['role'] = 'customer'
+        # Customers aren't issued credentials through this flow — username
+        # falls back to email if not explicitly provided, and create_user's
+        # set_password(None) gives them an unusable password (can't log in,
+        # which is correct: they're a record, not an account holder here).
+        validated_data.setdefault('username', validated_data['email'])
+        return CustomUser.objects.create_user(password=None, **validated_data)
