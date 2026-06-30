@@ -42,141 +42,133 @@ Transform the existing Django/DRF backend into a complete fullstack portfolio pr
 | JWT Auth | ✅ Done |
 | RBAC | ✅ Done |
 | All API endpoints | ✅ Done |
-| CORS headers | ❌ Need to add django-cors-headers |
+| CORS headers | ✅ Done |
 | API response consistency | ⚠️ Some endpoints need standardizing |
 
 ---
 
 ## 📋 Project Scope
 
-### Phase 1 — Backend Preparation (1-2 days)
-**Goal:** Make backend frontend-ready
+### Phase 1 — Backend Preparation ✅ Done
+- Add `django-cors-headers` so React can call the API
+- Standardize API error responses
+- Add `warehouse` as required field on stock endpoints
+- Add Celery Beat schedule for `notify_low_stock`
+- Write missing tests to reach 80%+ coverage
+- Update `.env.example` with all required variables
 
-- [ ] Add `django-cors-headers` so React can call the API
-- [ ] Standardize API error responses (consistent `{detail, code, errors}` format)
-- [ ] Add `dj-rest-auth` or custom token refresh interceptor support
-- [ ] Add `warehouse` as required field on stock endpoints
-- [ ] Add Celery Beat schedule for `notify_low_stock`
-- [ ] Write missing tests to reach 80%+ coverage
-- [ ] Update `.env.example` with all required variables
+### Phase 2 — Frontend Foundation ✅ Done
+- Scaffold React + Vite + TypeScript project
+- Configure TailwindCSS + shadcn/ui
+- Set up React Router with layout structure
+- Build axios instance with JWT interceptors (auto-refresh)
+- Auth pages: Login, Register
+- Protected route wrapper
+- Role-based route guards
+- Persistent auth state
 
-### Phase 2 — Frontend Foundation (2-3 days)
-**Goal:** Project setup + auth working end-to-end
+### Phase 3 — Core Pages ✅ Done
+- Dashboard, Products, Categories, Warehouses, Suppliers
+- Stock Transactions, Purchase Orders, Sale Orders, Low Stock Alerts
 
-- [ ] Scaffold React + Vite + TypeScript project
-- [ ] Configure TailwindCSS + shadcn/ui
-- [ ] Set up React Router with layout structure
-- [ ] Build axios instance with JWT interceptors (auto-refresh)
-- [ ] Auth pages: Login, Register
-- [ ] Protected route wrapper
-- [ ] Role-based route guards (admin-only pages)
-- [ ] Persistent auth state (localStorage + React Query)
+### Phase 4 — Reports & Polish ✅ Done
+- Inventory Value Report, Low Stock Report, Transaction History, Category Summary
+- Loading skeletons, error boundaries, empty states
+- Responsive mobile layout
 
-### Phase 3 — Core Pages (4-5 days)
-**Goal:** All main business pages working
-
-- [ ] **Dashboard** — charts, KPIs, recent activity
-- [ ] **Products** — list, create, edit, delete, search/filter
-- [ ] **Categories** — CRUD
-- [ ] **Warehouses** — CRUD
-- [ ] **Suppliers** — CRUD
-- [ ] **Stock Transactions** — list, stock in/out/adjust forms
-- [ ] **Purchase Orders** — list, create, confirm, receive lifecycle
-- [ ] **Sale Orders** — list, create, confirm, ship, invoice lifecycle
-- [ ] **Low Stock Alerts** — list, highlight critical items
-
-### Phase 4 — Reports & Polish (2-3 days)
-**Goal:** Reports dashboard + production-ready UI
-
-- [ ] **Inventory Value Report** — total value by category
-- [ ] **Low Stock Report** — products below reorder level
-- [ ] **Transaction History** — filterable audit log
-- [ ] **Category Summary** — pie/bar chart
-- [ ] Loading skeletons on all data tables
-- [ ] Error boundaries
-- [ ] Empty states
-- [ ] Toast notifications (success/error feedback)
-- [ ] Responsive mobile layout
-
-### Phase 5 — Deploy & Portfolio Polish (1 day)
-**Goal:** Live URL + clean README
-
-- [ ] Deploy frontend to Vercel or Netlify
-- [ ] Connect frontend to production backend on Render
+### Phase 5 — Deploy & Portfolio Polish 🔄 In progress
+- ✅ Deployed frontend to Vercel
+- ✅ Connected frontend to production backend on Render
+- ✅ Fixed Product #N / Warehouse #N display bug (Session 11)
 - [ ] Update README with screenshots + live demo link
-- [ ] Record a 2-minute demo video (optional but impressive)
+- [ ] Record a 2-minute demo video (optional)
 - [ ] Clean up GitHub commits
+
+### Phase 6 — Backlog: Fixes, UX, and New Pages 🆕 Not started
+Ordered by priority — see `docs/NEXT_STEPS.md` for the live, session-by-session breakdown.
+
+**Tier 1 — Bug fixes**
+- [ ] Low stock alert not triggering correctly — root cause investigation required
+
+**Tier 2 — Sale Order form UX (batched, same file)**
+- [ ] Customer dropdown with `CT00XX` display label, replacing raw numeric Customer ID input
+  - Backend: `?role=` query filter on `AccountsView` + permission split (customer list = any authenticated user, full list = admin only)
+- [ ] Price auto-fill on line item product selection (stays editable)
+
+**Tier 3 — Order lifecycle UX**
+- [ ] Async polling after Ship/Receive actions (202 Accepted → poll every 2s for ~15s → status updates without manual refresh)
+
+**Tier 4 — New pages**
+- [ ] User management page (admin-only): list, change role, toggle active/inactive
+  - Backend: `PATCH /accounts/{id}/` endpoint
+- [ ] Product detail page: full info + stock transaction history
+- [ ] Dark/light mode toggle with persistence (CSS vars already support `.dark`)
+
+**Tier 5 — Blocked on decisions (see Open Decisions in PROJECT_SCOPE.md)**
+- [ ] Product picture (blocked: Cloudinary vs base64 storage decision)
+- [ ] Celery Beat in production (blocked: deploy second Render worker vs code-only)
+- [ ] Uptime Robot monitor (no code — manual setup whenever)
+
+**Tier 6 — Deferred to roadmap, not built this cycle**
+- Per-warehouse stock tracking (schema change — `ProductWarehouseStock` through-table)
+- Pricing events / discount engine (seasonal %, bulk discounts — real feature, multi-session)
 
 ---
 
-## 📁 Proposed Folder Structure (Frontend)
+## 📁 Frontend Folder Structure (current)
 
 ```
 frontend/
 ├── src/
-│   ├── api/              # Axios instance + all API calls
-│   │   ├── client.ts     # Axios setup with interceptors
-│   │   ├── auth.ts
-│   │   ├── products.ts
-│   │   ├── orders.ts
-│   │   └── reports.ts
+│   ├── api/              # Axios instance + all API calls ✅
 │   ├── components/
-│   │   ├── ui/           # shadcn/ui components
-│   │   ├── layout/        # Sidebar, Navbar, PageHeader
-│   │   ├── tables/        # Reusable DataTable component
-│   │   └── forms/         # Reusable form components
+│   │   ├── ui/            ✅
+│   │   └── layout/        ✅ Sidebar, Navbar, PageLayout
 │   ├── pages/
-│   │   ├── auth/          # Login, Register
-│   │   ├── dashboard/
-│   │   ├── products/
-│   │   ├── orders/
-│   │   ├── reports/
-│   │   └── settings/
-│   ├── hooks/             # Custom React hooks
-│   ├── stores/            # Auth state (Zustand or Context)
-│   ├── types/             # TypeScript interfaces matching API
-│   ├── utils/             # Helpers, formatters
-│   └── routes/            # Router config + guards
+│   │   ├── auth/          ✅
+│   │   ├── dashboard/     ✅
+│   │   ├── products/      ✅
+│   │   ├── categories/    ✅
+│   │   ├── warehouses/    ✅
+│   │   ├── suppliers/     ✅
+│   │   ├── stock/         ✅
+│   │   ├── orders/        ✅
+│   │   ├── alerts/        ✅
+│   │   ├── reports/       ✅
+│   │   ├── users/         🆕 planned (Phase 6, Tier 4)
+│   │   └── products/[id]/ 🆕 planned — product detail page (Phase 6, Tier 4)
+│   ├── hooks/             ✅
+│   ├── stores/            ✅
+│   ├── types/             ✅
+│   ├── utils/
+│   └── routes/            ✅
 ├── public/
-├── index.html
-├── vite.config.ts
-├── tailwind.config.ts
-└── tsconfig.json
+└── ...
 ```
 
 ---
 
 ## 🎨 UI Design Direction
 
-**Style:** Clean, professional, dark sidebar + white content area  
-**Reference:** Similar to Linear, Vercel dashboard, or Shadcn blocks  
-**Color scheme:** Neutral grays + one accent color (blue or indigo)  
-
-### Key UI Components to build:
-- Sidebar navigation with role-based menu items
-- Data tables with sorting, filtering, pagination
-- Status badges (draft/confirmed/shipped etc.)
-- Stock level indicators (green/yellow/red)
-- Modal forms for create/edit
-- Confirmation dialogs for destructive actions
-- Toast notifications
+**Style:** Clean, professional, dark sidebar + white content area
+**Reference:** Similar to Linear, Vercel dashboard, or Shadcn blocks
+**Color scheme:** Neutral grays + one accent color (blue or indigo)
+**New (Phase 6):** Dark/light mode toggle — CSS variables in `index.css` already define both `:root` and `.dark`, just needs a toggle component + persisted preference
 
 ---
 
-## 📊 Dashboard KPIs to show
+## 📊 Dashboard KPIs (current)
 
 - Total inventory value
 - Total products
 - Low stock alerts count
 - Pending purchase orders
 - Pending sale orders
-- Recent transactions (last 10)
 - Stock value by category (bar chart)
-- Order status breakdown (pie chart)
 
 ---
 
-## 🔒 Frontend Auth Flow
+## 🔒 Frontend Auth Flow (current)
 
 ```
 User visits app
@@ -198,19 +190,8 @@ Axios interceptor
 
 Protected routes
   → Wrap all pages in <ProtectedRoute>
-  → Role guard: <AdminRoute> wraps admin-only pages
+  → Role guard: <AdminRoute> wraps admin-only pages (Phase 6: extend to /users page)
 ```
-
----
-
-## 📅 Suggested Timeline
-
-| Week | Focus |
-|---|---|
-| Week 1 | Phase 1 (backend prep) + Phase 2 (frontend foundation + auth) |
-| Week 2 | Phase 3 (core pages — products, warehouses, suppliers, stock) |
-| Week 3 | Phase 3 continued (orders lifecycle) + Phase 4 (reports) |
-| Week 4 | Phase 4 polish + Phase 5 (deploy + README) |
 
 ---
 
@@ -220,13 +201,15 @@ Protected routes
 |---|---|
 | RESTful API design | All DRF endpoints |
 | JWT authentication | Login + token refresh interceptor |
-| Role-based access control | RBAC on every endpoint + frontend guards |
+| Role-based access control | RBAC on every endpoint + frontend guards, extended in Phase 6 with user management |
 | Database transactions | `select_for_update()` in ship/receive |
 | Async background tasks | Celery + Redis for shipping/notifications |
 | Race condition handling | `select_for_update()` preventing double deduction |
 | Signal-driven architecture | `post_save` signals for reports + alerts |
+| Async UX patterns | Polling pattern after 202 Accepted responses (Phase 6) |
+| Deliberate scope management | Pricing engine + per-warehouse stock scoped but consciously deferred — documented in PROJECT_SCOPE.md as a senior-level "what I'd build next" signal |
 | React state management | React Query for server state |
 | TypeScript | Full type safety on frontend |
-| Testing | pytest suite for backend, component tests for frontend |
+| Testing | pytest suite for backend |
 | CI/CD | GitHub → Render auto-deploy |
 | Performance | Aggregated ORM queries, pagination |

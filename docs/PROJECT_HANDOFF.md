@@ -20,66 +20,73 @@ Complete handoff for continuing development of the IMS backend + React frontend.
 
 ## 🗄️ Database Architecture
 
-| Environment | Database | Location |
-|---|---|---|
-| Local dev | SQLite | `backend/db.sqlite3` |
-| Production | PostgreSQL | Supabase (Singapore, session pooler) |
+|
+ Environment 
+|
+ Database 
+|
+ Location 
+|
+|
+---
+|
+---
+|
+---
+|
+|
+ Local dev 
+|
+ SQLite 
+|
+`backend/db.sqlite3`
+|
+|
+ Production 
+|
+ PostgreSQL 
+|
+ Supabase (Singapore, session pooler) 
+|
 
 **Supabase project ID:** `nducnhxvrzxdeucrijeu`
-**Supabase dashboard:** https://supabase.com/dashboard/project/nducnhxvrzxdeucrijeu
 **Connection type:** Session Pooler (NOT Direct — Render is IPv4-only)
-**Old Render PostgreSQL:** DELETED (was `inventory-db`, deleted Session 10)
 
 ---
 
-## 🗂️ Monorepo Structure
+## 🗂️ Monorepo Structure (current + planned)
 
 ```
 inventory-management-system/
-├── backend/                          ← Django + DRF (fully built + deployed on Render)
-│   ├── build.sh                      ← Render build script (Root Directory = "backend")
+├── backend/
+│   ├── apps/
+│   │   ├── reports/views.py          ✅ LowStockReportView includes product_name + warehouse_name
+│   │   ├── accounts/views.py         🆕 planned: PATCH endpoint + ?role= filter (Phase 6)
+│   │   └── ...
 │   └── ...
 └── frontend/
-    ├── vercel.json                   ✅ SPA rewrite rule for React Router
+    ├── vercel.json                   ✅ SPA rewrite rule
     └── src/
-        ├── api/
-        │   ├── client.ts             ✅ Axios + JWT interceptors
-        │   ├── auth.ts               ✅
-        │   ├── products.ts           ✅
-        │   ├── warehouses.ts         ✅
-        │   ├── suppliers.ts          ✅
-        │   ├── orders.ts             ✅
-        │   └── reports.ts            ✅
-        ├── components/
-        │   ├── layout/
-        │   │   ├── Sidebar.tsx       ✅
-        │   │   ├── Navbar.tsx        ✅
-        │   │   └── PageLayout.tsx    ✅
-        │   └── ui/
-        │       └── button.tsx        ✅
-        ├── hooks/
-        │   └── useAuth.ts            ✅
-        ├── lib/
-        │   └── utils.ts              ✅
+        ├── api/                      ✅ all done
+        ├── components/                ✅ all done
+        ├── hooks/                     ✅
+        ├── lib/                       ✅
         ├── pages/
-        │   ├── auth/LoginPage.tsx              ✅
-        │   ├── dashboard/DashboardPage.tsx     ✅ (shows Product #N — needs name fix)
-        │   ├── products/ProductsPage.tsx       ✅
-        │   ├── categories/CategoriesPage.tsx   ✅
-        │   ├── warehouses/WarehousesPage.tsx   ✅
-        │   ├── suppliers/SuppliersPage.tsx     ✅
-        │   ├── stock/StockPage.tsx             ✅
-        │   ├── orders/PurchaseOrdersPage.tsx   ✅
-        │   ├── orders/SaleOrdersPage.tsx       ✅
-        │   ├── alerts/AlertsPage.tsx           ✅ (shows Product #N — needs name fix)
-        │   └── reports/ReportsPage.tsx         ✅
-        ├── routes/ProtectedRoute.tsx           ✅
-        ├── stores/authStore.tsx                ✅
-        ├── types/index.ts                      ✅
-        ├── App.tsx                             ✅ all 10 routes wired
-        ├── App.css                             ✅
-        ├── index.css                           ✅
-        └── main.tsx                            ✅ (sonner installed, NOT yet wired)
+        │   ├── auth/                  ✅
+        │   ├── dashboard/              ✅ real product/warehouse names
+        │   ├── products/               ✅ list/CRUD done; detail page 🆕 planned (Phase 6)
+        │   ├── categories/             ✅
+        │   ├── warehouses/             ✅
+        │   ├── suppliers/              ✅
+        │   ├── stock/                  ✅
+        │   ├── orders/                 ✅ planned: customer dropdown, price auto-fill, polling (Phase 6)
+        │   ├── alerts/                 ✅ real names; underlying bug still being fixed (Phase 6 Tier 1)
+        │   ├── reports/                ✅ minor: LowStockSection labels still show Product #N
+        │   └── users/                  🆕 planned (Phase 6 Tier 4)
+        ├── routes/                     ✅
+        ├── stores/                     ✅
+        ├── types/                      ✅
+        └── App.tsx                     ✅ will need new /users and /products/:id routes
 ```
 
 ---
@@ -95,44 +102,163 @@ inventory-management-system/
 - **Session 7** — Categories, Warehouses, Suppliers pages
 - **Session 8** — Stock, PurchaseOrders, SaleOrders, Alerts, Reports pages + App.tsx wired
 - **Session 9** — Fixed Render Root Directory, migrated DB to Supabase, set up DBeaver
-- **Session 10** — Deployed frontend to Vercel, added vercel.json SPA fix, installed sonner, deleted old Render PostgreSQL
+- **Session 10** — Deployed frontend to Vercel, added vercel.json SPA fix, deleted old Render PostgreSQL
+- **Session 11** — Fixed Product #N / Warehouse #N display: updated LowStockReportView (backend), LowStockItem type, AlertsPage, DashboardPage
+- **Session 12** — Reviewed and prioritized full new backlog (10 items: low stock bug, customer dropdown, price auto-fill, async polling, user management, product detail, dark mode, product pictures, Celery Beat, Uptime Robot). Updated PROJECT_SCOPE.md and PROJECT_PLAN.md (new Phase 6) to reflect the backlog. No code changes this session — planning only.
 
 ---
 
 ## 📊 Frontend Pages Status
 
-| Page | Status | Notes |
-|---|---|---|
-| Login | ✅ Done | |
-| Dashboard | ✅ Done | Low stock panel shows Product #N / Warehouse #N |
-| Products | ✅ Done | |
-| Categories | ✅ Done | |
-| Warehouses | ✅ Done | |
-| Suppliers | ✅ Done | |
-| Stock Transactions | ✅ Done | |
-| Purchase Orders | ✅ Done | |
-| Sale Orders | ✅ Done | |
-| Low Stock Alerts | ✅ Done | Shows Product #N / Warehouse #N |
-| Reports | ✅ Done | |
-
+|
+ Page 
+|
+ Status 
+|
+ Notes 
+|
+|
 ---
-
-## 📦 Installed Packages (not yet wired)
-
-| Package | Status | Notes |
-|---|---|---|
-| `sonner` | Installed, NOT wired | Add Toaster to main.tsx, toast calls to all mutation pages |
+|
+---
+|
+---
+|
+|
+ Login 
+|
+ ✅ Done 
+|
+|
+|
+ Dashboard 
+|
+ ✅ Done 
+|
+ Low stock panel shows real names 
+|
+|
+ Products 
+|
+ ✅ Done 
+|
+ Detail page planned (Phase 6) 
+|
+|
+ Categories 
+|
+ ✅ Done 
+|
+|
+|
+ Warehouses 
+|
+ ✅ Done 
+|
+|
+|
+ Suppliers 
+|
+ ✅ Done 
+|
+|
+|
+ Stock Transactions 
+|
+ ✅ Done 
+|
+|
+|
+ Purchase Orders 
+|
+ ✅ Done 
+|
+ Async polling planned (Phase 6) 
+|
+|
+ Sale Orders 
+|
+ ✅ Done 
+|
+ Customer dropdown + price auto-fill planned (Phase 6) 
+|
+|
+ Low Stock Alerts 
+|
+ ✅ Done (display) 
+|
+ Underlying alert trigger bug still open (Phase 6 Tier 1) 
+|
+|
+ Reports 
+|
+ ✅ Done 
+|
+ Minor: LowStockSection labels still show Product #N 
+|
+|
+ User management 
+|
+ 🆕 Planned 
+|
+ Phase 6 Tier 4 
+|
+|
+ Product detail 
+|
+ 🆕 Planned 
+|
+ Phase 6 Tier 4 
+|
 
 ---
 
 ## 🔐 Role System
 
-| Role | Stored Value | Access Level |
-|---|---|---|
-| Admin | `"admin"` | Full access incl. stock adjust |
-| Manager | `"manager"` | Warehouse + stock oversight |
-| Staff | `"staff"` | Orders, stock in/out |
-| Customer | `"customer"` | Sales orders only |
+|
+ Role 
+|
+ Stored Value 
+|
+ Access Level 
+|
+|
+---
+|
+---
+|
+---
+|
+|
+ Admin 
+|
+`"admin"`
+|
+ Full access incl. stock adjust, planned: user management 
+|
+|
+ Manager 
+|
+`"manager"`
+|
+ Warehouse + stock oversight 
+|
+|
+ Staff 
+|
+`"staff"`
+|
+ Orders, stock in/out 
+|
+|
+ Customer 
+|
+`"customer"`
+|
+ Sales orders only — will be listable via 
+`?role=customer`
+ filter (Phase 6) 
+|
 
 ---
 
@@ -151,22 +277,106 @@ const onSubmit = handleSubmit((values) => { myMutation.mutate(values) })
 
 ## 🎨 Established UI Patterns
 
-| Pattern | Implementation |
-|---|---|
-| Empty optional field | `<span className="italic text-muted-foreground/50">—</span>` |
-| Skeleton loading rows | `Array.from({ length: N }).map((_, i) => ...)` with animate-pulse |
-| Search debounce | `let searchTimeout = 0` + `window.setTimeout(..., 400)` |
-| Modal scroll | `max-h-[90vh] overflow-y-auto` on modal container |
-| Action buttons | edit: `hover:bg-muted`, delete: `hover:bg-red-50 hover:text-red-500` |
-| Primary button | `bg-foreground text-background hover:opacity-90` |
-| Danger button | `bg-red-500 text-white hover:bg-red-600` |
-| Dynamic form rows | `useFieldArray` from react-hook-form |
-| Expandable table row | local `useState(false)` per row, `ChevronDown/Up` icon toggle |
-| Stock type badge | IN=green-50/green-700, OUT=red-50/red-600, ADJ=blue-50/blue-700 |
-| Order status badge | per-status config object mapping status → label + className |
-| Severity bar | ratio-based width %, red/amber fill based on qty/reorder_level |
-| Toast success | `toast.success("Action done")` from sonner |
-| Toast error | `toast.error("Something went wrong.")` from sonner |
+|
+ Pattern 
+|
+ Implementation 
+|
+|
+---
+|
+---
+|
+|
+ Empty optional field 
+|
+`<span className="italic text-muted-foreground/50">—</span>`
+|
+|
+ Skeleton loading rows 
+|
+`Array.from({ length: N }).map((_, i) => ...)`
+ with animate-pulse 
+|
+|
+ Search debounce 
+|
+`let searchTimeout = 0`
+ + 
+`window.setTimeout(..., 400)`
+|
+|
+ Modal scroll 
+|
+`max-h-[90vh] overflow-y-auto`
+ on modal container 
+|
+|
+ Action buttons 
+|
+ edit: 
+`hover:bg-muted`
+, delete: 
+`hover:bg-red-50 hover:text-red-500`
+|
+|
+ Primary button 
+|
+`bg-foreground text-background hover:opacity-90`
+|
+|
+ Danger button 
+|
+`bg-red-500 text-white hover:bg-red-600`
+|
+|
+ Dynamic form rows 
+|
+`useFieldArray`
+ from react-hook-form 
+|
+|
+ Expandable table row 
+|
+ local 
+`useState(false)`
+ per row, 
+`ChevronDown/Up`
+ icon toggle 
+|
+|
+ Stock type badge 
+|
+ IN=green-50/green-700, OUT=red-50/red-600, ADJ=blue-50/blue-700 
+|
+|
+ Order status badge 
+|
+ per-status config object mapping status → label + className 
+|
+|
+ Severity bar 
+|
+ ratio-based width %, red/amber fill based on qty/reorder_level 
+|
+|
+ Truncating name cells 
+|
+`min-w-0 flex-1 truncate`
+ on the text container 
+|
+|
+ Display-only derived ID 
+|
+ compute in render, e.g. 
+`CT${String(id).padStart(4, '0')}`
+, never store or submit it (planned, Phase 6) 
+|
+|
+ Polling after async action 
+|
+ refetch every 2s for ~15s post-202, or until status changes (planned, Phase 6) 
+|
 
 ---
 
@@ -189,10 +399,18 @@ npm run dev
 
 ---
 
-## ⚠️ Known Issues
+## ⚠️ Known Issues / Open Items
 
-1. Dashboard low stock panel shows `Product #N` / `Warehouse #N` — needs name join
-2. AlertsPage shows `Product #N` / `Warehouse #N` — same issue, `/reports/low-stock/` returns raw IDs
-3. SaleOrder create form uses raw numeric customer ID field — poor UX, low priority
-4. `sonner` installed but not wired into main.tsx or any page yet
-5. README needs live URL, screenshots, and tech stack section
+1. **Low stock alert not triggering correctly** — root cause not yet diagnosed, top priority next session
+2. ReportsPage `LowStockSection` bar labels still show `Product #N` — one-line fix, low priority
+3. SaleOrder create form uses raw numeric customer ID — fix planned (Phase 6 Tier 2)
+4. Two decisions blocking Tier 5 items: product picture storage (Cloudinary vs base64), Celery Beat production deployment (second worker vs code-only)
+5. README still needs full portfolio polish (screenshots, live URLs, tech badges, local dev section)
+
+---
+
+## 📌 See Also
+
+- `docs/PROJECT_SCOPE.md` — full in-scope/out-of-scope list including new backlog items and "Open Decisions" table
+- `docs/PROJECT_PLAN.md` — Phase 6 has the tiered backlog breakdown
+- `docs/NEXT_STEPS.md` — session-by-session action items, always the most current "what to do right now"
