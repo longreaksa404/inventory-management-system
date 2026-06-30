@@ -284,3 +284,24 @@ export interface TransactionHistoryItem {
   status: OrderStatus
   created_at: string
 }
+
+// ─── Customer ────────────────────────────────────────────────────────────────
+
+export interface Customer {
+  id: number
+  first_name: string
+  last_name: string
+  email: string
+  phone_number: string
+  username: string
+  is_active: boolean
+  date_joined: string
+}
+
+export interface CustomerPayload {
+  first_name: string
+  last_name: string
+  email: string
+  phone_number?: string
+  username?: string
+}
