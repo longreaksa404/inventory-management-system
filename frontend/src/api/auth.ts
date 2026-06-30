@@ -5,6 +5,8 @@ import type {
   TokenPair,
   User,
   ChangePasswordPayload,
+  PaginatedResponse,
+  UserRole,
 } from "@/types"
 
 export const authApi = {
@@ -29,6 +31,20 @@ export const authApi = {
     const { data } = await apiClient.post<{ access: string }>(
       "/accounts/refresh/",
       { refresh }
+    )
+    return data
+  },
+
+  // ─── User listing ──────────────────────────────────────────────────────────
+  // Used by the Sale Order form to populate the customer dropdown.
+  // Backend restricts the *unfiltered* list to admins, but ?role= is open
+  // to any authenticated user — see apps/accounts/views.py AccountsView.
+  getUsersByRole: async (
+    role: UserRole
+  ): Promise<PaginatedResponse<User>> => {
+    const { data } = await apiClient.get<PaginatedResponse<User>>(
+      "/accounts/",
+      { params: { role } }
     )
     return data
   },

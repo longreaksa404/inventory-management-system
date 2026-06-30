@@ -21,6 +21,7 @@ import { ordersApi } from "@/api/orders"
 import { productsApi } from "@/api/products"
 import { warehousesApi } from "@/api/warehouses"
 import type { SaleOrder, OrderStatus } from "@/types"
+import { authApi } from "@/api/auth"
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 
@@ -140,7 +141,7 @@ const itemSchema = z.object({
 })
 
 const createSOSchema = z.object({
-  customer: z.coerce.number().min(1, "Customer ID is required"),
+  customer: z.coerce.number().min(1, "Select a customer"),
   warehouse: z.coerce.number().min(1, "Select a warehouse"),
   notes: z.string().optional(),
   items: z.array(itemSchema).min(1, "Add at least one item"),
@@ -149,6 +150,10 @@ const createSOSchema = z.object({
 function CreateSOForm({ onClose }: { onClose: () => void }) {
   const queryClient = useQueryClient()
 
+  const { data: customersData } = useQuery({
+    queryKey: ["users", { role: "customer" }],
+    queryFn: () => authApi.getUsersByRole("customer"),
+  })
   const { data: warehousesData } = useQuery({
     queryKey: ["warehouses"],
     queryFn: warehousesApi.getWarehouses,
@@ -158,7 +163,7 @@ function CreateSOForm({ onClose }: { onClose: () => void }) {
     queryFn: () => productsApi.getProducts({ page: 1 }),
   })
 
-  const { register, handleSubmit, control, formState: { errors } } = useForm({
+  const { register, handleSubmit, control, setValue, formState: { errors } } = useForm({
     resolver: zodResolver(createSOSchema),
     defaultValues: {
       customer: 0,
@@ -193,8 +198,19 @@ function CreateSOForm({ onClose }: { onClose: () => void }) {
     })
   })
 
+  const customers = customersData?.results ?? []
   const warehouses = warehousesData?.results ?? []
   const products = productsData?.results ?? []
+
+  // Price auto-fill: when a product is picked in a row, fill that row's
+  // unit_price from the product's current price. Field stays editable —
+  // this only runs on the change event, it doesn't lock the value.
+  const handleProductSelect = (index: number, productId: number) => {
+    const product = products.find((p) => p.id === productId)
+    if (product) {
+      setValue(`items.${index}.unit_price`, String(product.price))
+    }
+  }
 
   return (
     <form onSubmit={onSubmit} className="space-y-5">
@@ -207,14 +223,15 @@ function CreateSOForm({ onClose }: { onClose: () => void }) {
       )}
 
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Customer ID" error={errors.customer?.message}>
-          <Input
-            type="number"
-            min={1}
-            placeholder="Enter customer user ID"
-            hasError={!!errors.customer}
-            {...register("customer")}
-          />
+        <Field label="Customer" error={errors.customer?.message}>
+          <SelectInput hasError={!!errors.customer} {...register("customer")}>
+            <option value={0}>Select a customer</option>
+            {customers.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.first_name} {c.last_name} — CT{String(c.id).padStart(4, "0")}
+              </option>
+            ))}
+          </SelectInput>
         </Field>
         <Field label="Warehouse" error={errors.warehouse?.message}>
           <SelectInput hasError={!!errors.warehouse} {...register("warehouse")}>
@@ -251,7 +268,9 @@ function CreateSOForm({ onClose }: { onClose: () => void }) {
               <div className="col-span-5">
                 <SelectInput
                   hasError={!!errors.items?.[index]?.product}
-                  {...register(`items.${index}.product`)}
+                  {...register(`items.${index}.product`, {
+                    onChange: (e) => handleProductSelect(index, Number(e.target.value)),
+                  })}
                 >
                   <option value={0}>Product</option>
                   {products.map((p) => (
@@ -318,6 +337,7 @@ function CreateSOForm({ onClose }: { onClose: () => void }) {
     </form>
   )
 }
+
 
 // ─── Order row (expandable) ───────────────────────────────────────────────────
 
