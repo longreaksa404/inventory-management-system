@@ -22,7 +22,7 @@ Complete handoff for continuing development of the IMS backend + React frontend.
 
 | Environment | Database | Location |
 |---|---|---|
-| Local dev | SQLite | `backend/db.sqlite3` (via `config.settings.local`, now the default) |
+| Local dev | SQLite | `backend/db.sqlite3` (via `config.settings.local`, the default) |
 | Production | PostgreSQL | Supabase (Singapore, session pooler) |
 
 **Supabase project ID:** `nducnhxvrzxdeucrijeu`
@@ -35,38 +35,48 @@ Complete handoff for continuing development of the IMS backend + React frontend.
 ```
 inventory-management-system/
 ├── backend/
-│   ├── manage.py                     ✅ default settings module changed to config.settings.local (Session 13)
+│   ├── manage.py                     ✅ default settings module is config.settings.local
 │   ├── apps/
-│   │   ├── reports/views.py          ✅ LowStockReportView now reads Product.quantity directly (Session 13 fix)
-│   │   ├── orders/models.py          ✅ SaleOrder.ship() uses update_or_create for LowStockAlert (Session 13 fix)
-│   │   ├── accounts/views.py         🆕 planned: PATCH endpoint (Phase 6 Tier 4) — ?role= filter already done
+│   │   ├── accounts/
+│   │   │   ├── views.py              ✅ + CustomerListCreateView, CustomerDetailView (Session 15)
+│   │   │   ├── serializers.py        ✅ + CustomerSerializer (Session 15)
+│   │   │   ├── permissions.py        ✅ NEW (Session 15) — CustomerPermission
+│   │   │   └── urls.py               ✅ + /accounts/customers/, /accounts/customers/{id}/
+│   │   ├── reports/views.py          ✅ LowStockReportView reads Product.quantity directly
+│   │   ├── orders/models.py          ✅ SaleOrder.ship() uses update_or_create for LowStockAlert
 │   │   └── ...
 │   └── tests/
-│       ├── api/test_api_reports.py                      🆕 new (Session 13)
-│       └── domain/orders/test_low_stock_alert_refresh.py 🆕 new (Session 13)
+│       ├── api/test_api_reports.py
+│       ├── api/test_api_customers.py 🆕 PLANNED (Session 15 follow-up) — not written yet
+│       └── domain/orders/test_low_stock_alert_refresh.py
 └── frontend/
     ├── vercel.json                   ✅ SPA rewrite rule
     └── src/
-        ├── api/                      ✅ all done
+        ├── api/
+        │   ├── customers.ts          ✅ NEW (Session 15)
+        │   └── ... (rest done)
         ├── components/                ✅ all done
-        ├── hooks/                     ✅
+        ├── hooks/
+        │   ├── useAuth.ts             ✅
+        │   └── useOrderStatusPolling.ts  ✅ (Session 14) — generic polling hook for async Ship/Receive
         ├── lib/                       ✅
         ├── pages/
         │   ├── auth/                  ✅
-        │   ├── dashboard/              ✅ real product/warehouse names (low-stock warehouse now null — known/deferred)
-        │   ├── products/               ✅ list/CRUD done; detail page 🆕 planned (Phase 6)
+        │   ├── dashboard/              ✅ low-stock warehouse name still blank (known/deferred)
+        │   ├── products/               ✅ list/CRUD done; detail page 🆕 planned (Phase 6 Tier 4)
         │   ├── categories/             ✅
         │   ├── warehouses/             ✅
         │   ├── suppliers/               ✅
+        │   ├── customers/               ✅ NEW (Session 15) — CustomersPage.tsx, exports CustomerForm for reuse
         │   ├── stock/                  ✅
-        │   ├── orders/                 ✅ customer dropdown + price auto-fill appear ALREADY implemented — needs re-verification next session (Phase 6 Tier 2); async polling still planned (Tier 3)
-        │   ├── alerts/                 ✅ Tier 1 bug fixed — accurate data now; warehouse column blank (known, deferred)
+        │   ├── orders/                 ✅ Tier 3 polling done; Tier 2 dropdown UX done; Sale Order form now has inline "+ New customer" quick-create (Session 15)
+        │   ├── alerts/                 ✅ Tier 1 bug fixed — accurate data; warehouse column blank (known, deferred)
         │   ├── reports/                ✅ minor: LowStockSection labels still show Product #N
-        │   └── users/                  🆕 planned (Phase 6 Tier 4)
+        │   └── users/                  🆕 planned (Phase 6 Tier 4) — admin user mgmt, NOT the same as customers/
         ├── routes/                     ✅
         ├── stores/                     ✅
-        ├── types/                      ✅ (LowStockItem warehouse fields still typed non-nullable — mismatch with actual API response, deferred per user decision)
-        └── App.tsx                     ✅ will need new /users and /products/:id routes
+        ├── types/                      ✅ + Customer, CustomerPayload (Session 15)
+        └── App.tsx                     ✅ + /customers route (Session 15); /users and /products/:id still planned
 ```
 
 ---
@@ -83,9 +93,11 @@ inventory-management-system/
 - **Session 8** — Stock, PurchaseOrders, SaleOrders, Alerts, Reports pages + App.tsx wired
 - **Session 9** — Fixed Render Root Directory, migrated DB to Supabase, set up DBeaver
 - **Session 10** — Deployed frontend to Vercel, added vercel.json SPA fix, deleted old Render PostgreSQL
-- **Session 11** — Fixed Product #N / Warehouse #N display: updated LowStockReportView (backend), LowStockItem type, AlertsPage, DashboardPage
-- **Session 12** — Reviewed and prioritized full new backlog (10 items). Updated PROJECT_SCOPE.md and PROJECT_PLAN.md (new Phase 6). Planning only, no code changes.
-- **Session 13** — **Tier 1 complete.** Diagnosed and fixed two distinct low-stock alert bugs: (1) `LowStockReportView` was computing stock from purchase/sale order item sums instead of `Product.quantity`, causing wrong/missing alerts for any product whose stock moved via Stock In/Out/Adjust; rewrote to query `Product.quantity__lte=reorder_level` directly. (2) `SaleOrder.ship()` used `get_or_create` for `LowStockAlert`, freezing alert data at first trigger; changed to `update_or_create`. Added 4 new tests, all 53+ passing. Also fixed local dev CORS issue by changing `manage.py`'s default settings module from `development` to `local` (production unaffected — protected by Render's explicit env var + `wsgi.py`'s separate default). Verified fix live on `/alerts` page. User explicitly decided NOT to fix the resulting blank Warehouse column — deferred.
+- **Session 11** — Fixed Product #N / Warehouse #N display: updated LowStockReportView, LowStockItem type, AlertsPage, DashboardPage
+- **Session 12** — Reviewed and prioritized full backlog (10 items). Updated PROJECT_SCOPE.md and PROJECT_PLAN.md (new Phase 6). Planning only.
+- **Session 13** — Tier 1 complete: fixed two distinct low-stock alert bugs (LowStockReportView computing from order items instead of Product.quantity; SaleOrder.ship() using get_or_create instead of update_or_create). Added 4 tests. Fixed local dev CORS by changing manage.py default to config.settings.local.
+- **Session 14** — Tier 3 complete: built `useOrderStatusPolling` hook, wired into `PurchaseOrdersPage.tsx` (receive) and `SaleOrdersPage.tsx` (ship), both with a "Processing…" spinner badge during polling. No backend changes required.
+- **Session 15** — **Tier 2 finalized + new Customer management feature built.** Tier 2: verified price auto-fill correct as-is; changed customer dropdown label from internal `CT00XX` ID to name + phone (`{first_name} {last_name} ({phone_number})`). While verifying this, discovered there was no way to create a customer anywhere in the app — built a full fix: backend `CustomerSerializer`/`CustomerListCreateView`/`CustomerDetailView`/`CustomerPermission` (staff can create/list, admin/manager can edit/deactivate, no hard delete since `SaleOrder.customer` is `PROTECT`); frontend `CustomersPage.tsx` (full management page, reused on `/customers`) plus an inline "+ New customer" quick-create modal directly in the Sale Order form. **No test coverage added yet — flagged as the required next step before Tier 4.**
 
 ---
 
@@ -94,17 +106,18 @@ inventory-management-system/
 | Page | Status | Notes |
 |---|---|---|
 | Login | ✅ Done | |
-| Dashboard | ✅ Done | Low stock panel — warehouse name now blank (known/deferred, Session 13) |
+| Dashboard | ✅ Done | Low stock panel — warehouse name blank (known/deferred) |
 | Products | ✅ Done | Detail page planned (Phase 6) |
 | Categories | ✅ Done | |
 | Warehouses | ✅ Done | |
 | Suppliers | ✅ Done | |
+| **Customers** | **✅ Done (Session 15)** | **New page — search, create, edit, active/inactive toggle (no hard delete)** |
 | Stock Transactions | ✅ Done | |
-| Purchase Orders | ✅ Done | Async polling planned (Phase 6 Tier 3) |
-| Sale Orders | ✅ Done | Customer dropdown + price auto-fill appear already implemented — re-verify next session |
-| Low Stock Alerts | ✅ Done (display), ✅ Done (backend accuracy, Session 13) | Warehouse column blank — known/deferred |
+| Purchase Orders | ✅ Done | Async polling on Receive |
+| Sale Orders | ✅ Done | Async polling on Ship; customer dropdown shows name+phone; inline customer quick-create (Session 15) |
+| Low Stock Alerts | ✅ Done | Warehouse column blank — known/deferred |
 | Reports | ✅ Done | Minor: LowStockSection labels still show Product #N |
-| User management | 🆕 Planned | Phase 6 Tier 4 |
+| User management | 🆕 Planned | Phase 6 Tier 4 — admin-only role/active management, distinct from Customers page |
 | Product detail | 🆕 Planned | Phase 6 Tier 4 |
 
 ---
@@ -113,10 +126,10 @@ inventory-management-system/
 
 | Role | Stored Value | Access Level |
 |---|---|---|
-| Admin | `"admin"` | Full access incl. stock adjust, planned: user management |
-| Manager | `"manager"` | Warehouse + stock oversight |
-| Staff | `"staff"` | Orders, stock in/out |
-| Customer | `"customer"` | Sales orders only — listable via `?role=customer` filter (already implemented) |
+| Admin | `"admin"` | Full access incl. stock adjust, customer edit/deactivate, planned: user management |
+| Manager | `"manager"` | Warehouse + stock oversight, customer edit/deactivate |
+| Staff | `"staff"` | Orders, stock in/out, **can create customers but not edit/deactivate them** |
+| Customer | `"customer"` | Not a logged-in role in practice — customer records have unusable passwords (created via `CustomerSerializer`, never log in) |
 
 ---
 
@@ -133,12 +146,9 @@ const onSubmit = handleSubmit((values) => { myMutation.mutate(values) })
 
 ---
 
-## ⚠️ Local Dev Settings Module (Session 13 change)
+## ⚠️ Local Dev Settings Module
 
-`backend/manage.py` now defaults to `config.settings.local` (was `config.settings.development`). This means:
-- `python manage.py runserver` (no env var needed) now uses SQLite + `CORS_ALLOW_ALL_ORIGINS = True` + console email + eager Celery — correct for daily frontend+backend local work.
-- If you specifically need `config.settings.development` (e.g. testing against local Postgres/Redis), you must now explicitly set: `$env:DJANGO_SETTINGS_MODULE="config.settings.development"` before running the command.
-- **Production is NOT affected.** Render sets `DJANGO_SETTINGS_MODULE=config.settings.production` explicitly (`render.yaml`), and `config/wsgi.py` has its own separate hardcoded default of `config.settings.production` — gunicorn never touches `manage.py`'s default at all.
+`backend/manage.py` defaults to `config.settings.local`. `python manage.py runserver` (no env var needed) uses SQLite + `CORS_ALLOW_ALL_ORIGINS = True` + console email + eager Celery. For `config.settings.development` (e.g. local Postgres/Redis), explicitly set `$env:DJANGO_SETTINGS_MODULE="config.settings.development"`. Production is unaffected — Render sets `DJANGO_SETTINGS_MODULE=config.settings.production` explicitly via `render.yaml`, and `wsgi.py` has its own separate hardcoded default.
 
 ---
 
@@ -159,17 +169,18 @@ const onSubmit = handleSubmit((values) => { myMutation.mutate(values) })
 | Order status badge | per-status config object mapping status → label + className |
 | Severity bar | ratio-based width %, red/amber fill based on qty/reorder_level |
 | Truncating name cells | `min-w-0 flex-1 truncate` on the text container |
-| Display-only derived ID | `CT${String(id).padStart(4, '0')}` — already implemented in SaleOrdersPage |
-| Polling after async action | refetch every 2s for ~15s post-202, or until status changes (planned, Phase 6 Tier 3) |
-| Backend "low stock" check | Always `quantity__lte=F('reorder_level')` against `Product.quantity` directly — never derive from order-item sums (Session 13 lesson) |
-| LowStockAlert writes | Always `update_or_create`, never `get_or_create` — alert data must refresh as stock changes (Session 13 lesson) |
+| Async action polling | `useOrderStatusPolling(fetchFn, listQueryKey)` hook — `startPolling(id, initialStatus)` after a 202 response; 2s interval, 15s timeout; row renders a spinner badge via `pollingIds.has(id)` while in flight |
+| **Soft-deactivate instead of delete** | **`PATCH {is_active: false}` for entities referenced by `PROTECT` FKs (e.g. customers referenced by SaleOrder) — never expose a DELETE endpoint that would just 500 (Session 15)** |
+| **Inline quick-create from a parent form** | **A small "+" button next to a `<select>` opens the same form component used by the full management page, in a modal; `onCreated` callback both invalidates the relevant list query and `setValue`s the new id into the parent form (Session 15, Sale Order → Customer)** |
+| Backend "low stock" check | Always `quantity__lte=F('reorder_level')` against `Product.quantity` directly — never derive from order-item sums |
+| LowStockAlert writes | Always `update_or_create`, never `get_or_create` |
 
 ---
 
 ## ⚙️ Local Dev Commands (PowerShell)
 
 ```powershell
-# Backend (no env var needed as of Session 13)
+# Backend (no env var needed)
 cd backend
 pipenv shell
 python manage.py runserver
@@ -187,16 +198,18 @@ npm run dev
 ## ⚠️ Known Issues / Open Items
 
 1. ~~Low stock alert not triggering correctly~~ — ✅ FIXED Session 13
-2. Blank "Warehouse" column on Low Stock Alerts/Dashboard — known side effect of Session 13 fix, **explicitly deferred per user decision, do not fix unless asked**
+2. Blank "Warehouse" column on Low Stock Alerts/Dashboard — known side effect, **explicitly deferred per user decision, do not fix unless asked**
 3. ReportsPage `LowStockSection` bar labels still show `Product #N` — one-line fix, low priority
-4. Sale Order customer dropdown + price auto-fill — code appears complete, needs browser re-verification next session (Phase 6 Tier 2)
-5. Two decisions blocking Tier 5 items: product picture storage (Cloudinary vs base64), Celery Beat production deployment (second worker vs code-only)
-6. README still needs full portfolio polish (screenshots, live URLs, tech badges, local dev section)
+4. `useOrderStatusPolling` has no cleanup on component unmount — low risk, optional follow-up if reused elsewhere
+5. **New customer endpoints (`/accounts/customers/`) and `CustomersPage.tsx` have zero test coverage — write `tests/api/test_api_customers.py` before starting Tier 4 (Session 15)**
+6. Customer list/dropdown paginated at 50 like all list endpoints — fine now, revisit if customer count grows
+7. Two decisions blocking Tier 5 items: product picture storage (Cloudinary vs base64), Celery Beat production deployment (second worker vs code-only)
+8. README still needs full portfolio polish (screenshots, live URLs, tech badges, local dev section)
 
 ---
 
 ## 📌 See Also
 
-- `docs/PROJECT_SCOPE.md` — full in-scope/out-of-scope list including backlog items and "Open Decisions" table
-- `docs/PROJECT_PLAN.md` — Phase 6 has the tiered backlog breakdown
+- `docs/PROJECT_SCOPE.md` — full in-scope/out-of-scope list including backlog items and "Open Decisions" table. **Should be updated to add Customer management to In Scope — not yet done as of Session 15.**
+- `docs/PROJECT_PLAN.md` — Phase 6 has the tiered backlog breakdown. **Same note — Customer management isn't reflected there yet since it wasn't originally planned.**
 - `docs/NEXT_STEPS.md` — session-by-session action items, always the most current "what to do right now"
