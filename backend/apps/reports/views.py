@@ -41,58 +41,21 @@ class LowStockReportView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Two aggregated querysets merged in Python — O(1) queries regardless
-        # of dataset size.
+        products = Product.objects.filter(
+            quantity__lte=F('reorder_level')
+        ).only('id', 'name', 'quantity', 'reorder_level')
 
-        purchased = (
-            PurchaseOrderItem.objects
-            .values('product_id', 'order__warehouse_id')
-            .annotate(total_purchased=Sum('quantity'))
-        )
-
-        sold = (
-            SaleOrderItem.objects
-            .values('product_id', 'order__warehouse_id')
-            .annotate(total_sold=Sum('quantity'))
-        )
-
-        sold_map = {
-            (s['product_id'], s['order__warehouse_id']): s['total_sold'] or 0
-            for s in sold
-        }
-
-        # Pre-fetch product info (id → name, reorder_level) in one query
-        product_map = {
-            p.id: {'name': p.name, 'reorder_level': p.reorder_level}
-            for p in Product.objects.only('id', 'name', 'reorder_level')
-        }
-
-        # Pre-fetch warehouse names in one query
-        from apps.warehouses.models import Warehouse
-        warehouse_map = {
-            w.id: w.name
-            for w in Warehouse.objects.only('id', 'name')
-        }
-
-        alerts = []
-        for row in purchased:
-            product_id = row['product_id']
-            warehouse_id = row['order__warehouse_id']
-            total_purchased = row['total_purchased'] or 0
-            total_sold = sold_map.get((product_id, warehouse_id), 0)
-            net_stock = max(total_purchased - total_sold, 0)
-            product_info = product_map.get(product_id, {})
-            reorder_level = product_info.get('reorder_level', 0)
-
-            if net_stock <= reorder_level:
-                alerts.append({
-                    "product": product_id,
-                    "product_name": product_info.get('name', f'Product #{product_id}'),
-                    "warehouse": warehouse_id,
-                    "warehouse_name": warehouse_map.get(warehouse_id, f'Warehouse #{warehouse_id}'),
-                    "quantity": net_stock,
-                    "reorder_level": reorder_level,
-                })
+        alerts = [
+            {
+                "product": p.id,
+                "product_name": p.name,
+                "warehouse": None,
+                "warehouse_name": None,
+                "quantity": p.quantity,
+                "reorder_level": p.reorder_level,
+            }
+            for p in products
+        ]
 
         return Response(alerts)
 

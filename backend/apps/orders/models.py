@@ -159,10 +159,7 @@ class SaleOrder(BaseOrder):
                     LowStockAlert.objects.get_or_create(
                         product=product,
                         warehouse=self.warehouse,
-                        defaults={
-                            "quantity": product.quantity,
-                            "reorder_level": product.reorder_level,
-                        },
+                        defaults={"quantity": product.quantity, "reorder_level": product.reorder_level},
                     )
 
             self.status = 'shipped'
