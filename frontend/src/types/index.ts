@@ -262,7 +262,9 @@ export interface InventoryValueReport {
 
 export interface LowStockItem {
   product: number
+  product_name: string
   warehouse: number
+  warehouse_name: string
   quantity: number
   reorder_level: number
 }

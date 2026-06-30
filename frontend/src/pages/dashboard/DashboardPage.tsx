@@ -212,11 +212,11 @@ export default function DashboardPage() {
               <div className="divide-y">
                 {lowStockItems?.slice(0, 6).map((item, i) => (
                   <div key={i} className="flex items-center justify-between px-4 py-3">
-                    <div>
-                      <p className="text-xs font-medium">Product #{item.product}</p>
-                      <p className="text-[10px] text-muted-foreground">Warehouse #{item.warehouse}</p>
+                    <div className="min-w-0 flex-1 pr-3">
+                      <p className="truncate text-xs font-medium">{item.product_name}</p>
+                      <p className="truncate text-[10px] text-muted-foreground">{item.warehouse_name}</p>
                     </div>
-                    <div className="text-right">
+                    <div className="shrink-0 text-right">
                       <p className="text-sm font-semibold tabular-nums text-red-500">{item.quantity}</p>
                       <p className="text-[10px] text-muted-foreground">/ {item.reorder_level}</p>
                     </div>

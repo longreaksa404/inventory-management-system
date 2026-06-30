@@ -41,13 +41,8 @@ class LowStockReportView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # FIX: The original implementation used nested Python loops over all
-        # products and all order items — O(n × m) queries that would fire
-        # thousands of DB hits with real data.
-        #
-        # New approach: two aggregated querysets (one for purchased qty per
-        # product+warehouse, one for sold qty), merged in Python once.
-        # Total queries: 2, regardless of dataset size.
+        # Two aggregated querysets merged in Python — O(1) queries regardless
+        # of dataset size.
 
         purchased = (
             PurchaseOrderItem.objects
@@ -61,16 +56,22 @@ class LowStockReportView(APIView):
             .annotate(total_sold=Sum('quantity'))
         )
 
-        # Build a lookup: (product_id, warehouse_id) → total_sold
         sold_map = {
             (s['product_id'], s['order__warehouse_id']): s['total_sold'] or 0
             for s in sold
         }
 
-        # Pre-fetch reorder levels in one query
-        reorder_map = {
-            p.id: p.reorder_level
+        # Pre-fetch product info (id → name, reorder_level) in one query
+        product_map = {
+            p.id: {'name': p.name, 'reorder_level': p.reorder_level}
             for p in Product.objects.only('id', 'name', 'reorder_level')
+        }
+
+        # Pre-fetch warehouse names in one query
+        from apps.warehouses.models import Warehouse
+        warehouse_map = {
+            w.id: w.name
+            for w in Warehouse.objects.only('id', 'name')
         }
 
         alerts = []
@@ -80,12 +81,15 @@ class LowStockReportView(APIView):
             total_purchased = row['total_purchased'] or 0
             total_sold = sold_map.get((product_id, warehouse_id), 0)
             net_stock = max(total_purchased - total_sold, 0)
-            reorder_level = reorder_map.get(product_id, 0)
+            product_info = product_map.get(product_id, {})
+            reorder_level = product_info.get('reorder_level', 0)
 
             if net_stock <= reorder_level:
                 alerts.append({
                     "product": product_id,
+                    "product_name": product_info.get('name', f'Product #{product_id}'),
                     "warehouse": warehouse_id,
+                    "warehouse_name": warehouse_map.get(warehouse_id, f'Warehouse #{warehouse_id}'),
                     "quantity": net_stock,
                     "reorder_level": reorder_level,
                 })
@@ -145,12 +149,6 @@ class TransactionHistoryReportView(APIView):
         ]
         return Response(transactions)
 
-
-# FIX: All three ViewSets previously had no explicit permission_classes,
-# relying entirely on whatever REST_FRAMEWORK default was configured.
-# If the global default were ever changed to AllowAny, financial report data
-# would become publicly accessible. Explicit IsAuthenticated here makes the
-# intent clear and safe regardless of global settings changes.
 
 class SalesReportEntryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = SalesReportEntry.objects.all().order_by("-created_at")

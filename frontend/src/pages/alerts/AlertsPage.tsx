@@ -6,7 +6,6 @@ import { reportsApi } from "@/api/reports"
 // ─── Severity indicator ───────────────────────────────────────────────────────
 
 function SeverityBar({ quantity, reorderLevel }: { quantity: number; reorderLevel: number }) {
-  // 0 = critical, approaching reorder = warning
   const ratio = reorderLevel > 0 ? quantity / reorderLevel : 1
   const { barClass, labelClass, label } = ratio === 0
     ? { barClass: "bg-red-500", labelClass: "text-red-600", label: "Out of stock" }
@@ -116,8 +115,8 @@ export default function AlertsPage() {
                     alert.quantity === 0 ? "bg-red-50/40" : "",
                   ].join(" ")}
                 >
-                  <td className="px-4 py-3 font-medium">Product #{alert.product}</td>
-                  <td className="px-4 py-3 text-muted-foreground">Warehouse #{alert.warehouse}</td>
+                  <td className="px-4 py-3 font-medium">{alert.product_name}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{alert.warehouse_name}</td>
                   <td className="px-4 py-3 text-right tabular-nums">
                     <span className={alert.quantity === 0 ? "font-semibold text-red-600" : "font-medium"}>
                       {alert.quantity}
