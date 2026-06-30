@@ -3,11 +3,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
-from rest_framework import generics, permissions, status
+from rest_framework import generics, permissions, status, filters
 
 from .models import CustomUser
-from .serializers import RegistrationSerializer, UserListSerializer, ChangePasswordSerializer
+from .serializers import RegistrationSerializer, UserListSerializer, ChangePasswordSerializer, CustomerSerializer
 from apps.accounts.services import change_password
+
+from .permissions import CustomerPermission
+from django_filters.rest_framework import DjangoFilterBackend
 
 
 class RegisterView(generics.CreateAPIView):
@@ -72,3 +75,26 @@ class ChangePasswordView(generics.UpdateAPIView):
                 {"detail": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        
+
+class CustomerListCreateView(generics.ListCreateAPIView):
+    serializer_class = CustomerSerializer
+    permission_classes = [CustomerPermission]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['first_name', 'last_name', 'email', 'phone_number']
+    ordering_fields = ['first_name', 'last_name', 'date_joined']
+    ordering = ['first_name', 'last_name']
+
+    def get_queryset(self):
+        return CustomUser.objects.filter(role='customer')
+
+
+class CustomerDetailView(generics.RetrieveUpdateAPIView):
+    # No DELETE: SaleOrder.customer is on_delete=PROTECT, so a real delete
+    # would 500 once a customer has any orders. "is_active" toggle via PATCH
+    # is the supported way to retire a customer record.
+    serializer_class = CustomerSerializer
+    permission_classes = [CustomerPermission]
+
+    def get_queryset(self):
+        return CustomUser.objects.filter(role='customer')
