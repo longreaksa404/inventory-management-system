@@ -15,6 +15,8 @@ const PurchaseOrdersPage  = lazy(() => import("@/pages/orders/PurchaseOrdersPage
 const SaleOrdersPage      = lazy(() => import("@/pages/orders/SaleOrdersPage"))
 const AlertsPage          = lazy(() => import("@/pages/alerts/AlertsPage"))
 const ReportsPage         = lazy(() => import("@/pages/reports/ReportsPage"))
+const CustomersPage       = lazy(() => import("@/pages/customers/CustomersPage"))
+
 
 function PageSpinner() {
   return (
@@ -45,6 +47,7 @@ export default function App() {
             <Route path="/orders/sales"   element={<SaleOrdersPage />} />
             <Route path="/alerts"         element={<AlertsPage />} />
             <Route path="/reports"        element={<ReportsPage />} />
+            <Route path="/customers"      element={<CustomersPage />} />
           </Route>
         </Route>
 

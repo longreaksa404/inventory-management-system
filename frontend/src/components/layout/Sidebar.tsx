@@ -25,6 +25,8 @@ import {
   BarChart2,
   LogOut,
 } from "lucide-react"
+import { UserCircle } from "lucide-react"
+
 
 // ─── Nav item definition ──────────────────────────────────────────────────────
 
@@ -61,6 +63,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Warehouses", path: "/warehouses", icon: Warehouse },
       { label: "Suppliers", path: "/suppliers", icon: Truck },
+      { label: "Customers", path: "/customers", icon: UserCircle },
       { label: "Purchase Orders", path: "/orders/purchase", icon: ShoppingCart },
       { label: "Sale Orders", path: "/orders/sales", icon: Receipt },
     ],

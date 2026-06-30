@@ -23,6 +23,7 @@ import { warehousesApi } from "@/api/warehouses"
 import type { SaleOrder, OrderStatus } from "@/types"
 import { authApi } from "@/api/auth"
 import { useOrderStatusPolling } from "@/hooks/useOrderStatusPolling"
+import { CustomerForm } from "@/pages/customers/CustomersPage"
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 
@@ -150,6 +151,7 @@ const createSOSchema = z.object({
 
 function CreateSOForm({ onClose }: { onClose: () => void }) {
   const queryClient = useQueryClient()
+  const [showQuickAddCustomer, setShowQuickAddCustomer] = useState(false)
 
   const { data: customersData } = useQuery({
     queryKey: ["users", { role: "customer" }],
@@ -225,14 +227,25 @@ function CreateSOForm({ onClose }: { onClose: () => void }) {
 
       <div className="grid grid-cols-2 gap-3">
         <Field label="Customer" error={errors.customer?.message}>
-          <SelectInput hasError={!!errors.customer} {...register("customer")}>
-            <option value={0}>Select a customer</option>
-            {customers.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.first_name} {c.last_name} — CT{String(c.id).padStart(4, "0")}
-              </option>
-            ))}
-          </SelectInput>
+          <div className="flex gap-1.5">
+            <SelectInput hasError={!!errors.customer} {...register("customer")} className="flex-1">
+              <option value={0}>Select a customer</option>
+              {customers.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.first_name} {c.last_name}
+                  {c.phone_number ? ` (${c.phone_number})` : ""}
+                </option>
+              ))}
+            </SelectInput>
+            <button
+              type="button"
+              onClick={() => setShowQuickAddCustomer(true)}
+              title="Add new customer"
+              className="flex h-8 shrink-0 items-center justify-center rounded-lg border px-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </Field>
         <Field label="Warehouse" error={errors.warehouse?.message}>
           <SelectInput hasError={!!errors.warehouse} {...register("warehouse")}>
@@ -335,6 +348,19 @@ function CreateSOForm({ onClose }: { onClose: () => void }) {
           {mutation.isPending ? "Creating…" : "Create order"}
         </button>
       </div>
+
+      {showQuickAddCustomer && (
+        <Modal title="Add customer" onClose={() => setShowQuickAddCustomer(false)}>
+          <CustomerForm
+            editing={null}
+            onClose={() => setShowQuickAddCustomer(false)}
+            onCreated={(customer) => {
+              queryClient.invalidateQueries({ queryKey: ["users", { role: "customer" }] })
+              setValue("customer", customer.id)
+            }}
+          />
+        </Modal>
+      )}
     </form>
   )
 }
