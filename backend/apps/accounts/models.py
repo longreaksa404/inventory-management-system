@@ -26,16 +26,10 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('Users must have a first name')
         if not last_name:
             raise ValueError('Users must have a last name')
-        # FIX: The original guard raised ValueError for missing phone_number,
-        # but create_superuser() passed phone_number=None by default. When the
-        # DJANGO_SUPERUSER_PHONE env var was missing, superuser creation silently
-        # failed with an unhelpful ValueError instead of a clear deployment error.
-        # Now we only enforce phone_number for non-superuser accounts. Superusers
-        # may have a blank phone (build.sh provides a default; CI/CD won't break).
         is_superuser = extra_fields.get('is_superuser', False)
-        if not phone_number and not is_superuser:
+        if not phone_number and not is_superuser and role != 'customer':
             raise ValueError('Users must have a phone number')
-
+ 
         email = self.normalize_email(email)
         user = self.model(
             email=email,
