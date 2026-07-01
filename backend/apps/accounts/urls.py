@@ -5,6 +5,7 @@ from apps.accounts.serializers import RegistrationSerializer
 from apps.accounts.views import (
     RegisterView, ProfileView, AccountsView, ChangePasswordView,
     CustomerListCreateView, CustomerDetailView,
+    UserManagementView,
 )
 
 urlpatterns = [
@@ -16,4 +17,5 @@ urlpatterns = [
     path('change-password/', ChangePasswordView.as_view(), name='change-password'),
     path('customers/', CustomerListCreateView.as_view(), name='customer-list-create'),
     path('customers/<int:pk>/', CustomerDetailView.as_view(), name='customer-detail'),
+    path('<int:pk>/', UserManagementView.as_view(), name='user-management'),
 ]
