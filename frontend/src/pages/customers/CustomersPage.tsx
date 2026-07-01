@@ -13,13 +13,16 @@ import type { Customer } from "@/types"
 const customerSchema = z.object({
   first_name: z.string().min(1, "First name is required").max(150),
   last_name: z.string().min(1, "Last name is required").max(150),
-  email: z.string().min(1, "Email is required").email("Enter a valid email"),
-  phone_number: z
+  email: z
     .string()
     .optional()
-    .refine((val) => !val || /^\+855\d{8,9}$/.test(val), {
-      message: "Phone must be in +855xxxxxxxx format",
+    .refine((val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+      message: "Enter a valid email",
     }),
+  phone_number: z
+    .string()
+    .min(1, "Phone number is required")
+    .regex(/^\+855\d{8,9}$/, "Phone must be in +855xxxxxxxx format"),
 })
 
 // ─── Shared form controls ─────────────────────────────────────────────────────
@@ -261,7 +264,9 @@ export default function CustomersPage() {
               customers.map((c) => (
                 <tr key={c.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
                   <td className="px-4 py-3 font-medium">{c.first_name} {c.last_name}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{c.email}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {c.email || <span className="italic text-muted-foreground/50">—</span>}
+                  </td>
                   <td className="px-4 py-3 text-muted-foreground tabular-nums">
                     {c.phone_number || <span className="italic text-muted-foreground/50">—</span>}
                   </td>

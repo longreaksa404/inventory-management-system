@@ -292,7 +292,7 @@ export interface Customer {
   id: number
   first_name: string
   last_name: string
-  email: string
+  email: string | null
   phone_number: string
   username: string
   is_active: boolean
@@ -302,7 +302,7 @@ export interface Customer {
 export interface CustomerPayload {
   first_name: string
   last_name: string
-  email: string
-  phone_number?: string
+  email?: string
+  phone_number: string
   username?: string
 }

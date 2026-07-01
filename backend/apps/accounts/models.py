@@ -9,28 +9,37 @@ class CustomUserManager(BaseUserManager):
 
     def create_user(
             self,
-            email,
-            first_name,
-            last_name,
-            username,
+            email=None,
+            first_name=None,
+            last_name=None,
+            username=None,
             phone_number=None,
             password=None,
             role='staff',
             **extra_fields
     ):
-        if not email:
-            raise ValueError('Users must have an email address')
         if not username:
             raise ValueError('Users must have a username')
         if not first_name:
             raise ValueError('Users must have a first name')
         if not last_name:
             raise ValueError('Users must have a last name')
+
         is_superuser = extra_fields.get('is_superuser', False)
-        if not phone_number and not is_superuser and role != 'customer':
-            raise ValueError('Users must have a phone number')
- 
-        email = self.normalize_email(email)
+
+        if role == 'customer':
+            # Customers never log in through this system (unusable password),
+            # so email is optional for them. Phone is how staff actually
+            # reach a customer, so it's required instead.
+            if not phone_number:
+                raise ValueError('Customers must have a phone number')
+        else:
+            if not email:
+                raise ValueError('Users must have an email address')
+            if not phone_number and not is_superuser:
+                raise ValueError('Users must have a phone number')
+
+        email = self.normalize_email(email) if email else None
         user = self.model(
             email=email,
             first_name=first_name,
@@ -44,26 +53,6 @@ class CustomUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(
-            self,
-            email,
-            first_name,
-            last_name,
-            username,
-            phone_number=None,
-            password=None,
-            **extra_fields
-    ):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('is_active', True)
-
-        return self.create_user(
-            email, first_name, last_name, username,
-            phone_number, password, role='admin', **extra_fields
-        )
-
-
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     # FIX: ROLE_CHOICES uses lowercase stored values consistently.
     # Always compare against the stored value ('admin', not 'Admin').
@@ -75,7 +64,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('customer', 'Customer'),
     )
 
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True, blank=True, null=True)
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     username = models.CharField(max_length=255, unique=True)

@@ -1,6 +1,7 @@
 # apps/accounts/serializers.py
 from rest_framework import serializers
 from .models import CustomUser
+import uuid
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -60,13 +61,6 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 
 class CustomerSerializer(serializers.ModelSerializer):
-    """
-    Dedicated serializer for customer records (CustomUser with role="customer").
-    Separate from RegistrationSerializer on purpose: customers don't log in
-    through this system, so no password is collected here, and role is
-    force-set server-side rather than read from input — same security
-    reasoning as RegistrationSerializer's read_only role/is_staff fields.
-    """
     class Meta:
         model = CustomUser
         fields = [
@@ -76,15 +70,24 @@ class CustomerSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'date_joined']
         extra_kwargs = {
             'username': {'required': False},
+            'email': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'phone_number': {'required': True, 'allow_blank': False},
         }
 
     def create(self, validated_data):
         validated_data['role'] = 'customer'
-        # Customers aren't issued credentials through this flow — username
-        # falls back to email if not explicitly provided, and create_user's
-        # set_password(None) gives them an unusable password (can't log in,
-        # which is correct: they're a record, not an account holder here).
-        validated_data.setdefault('username', validated_data['email'])
+        # Blank string -> None so it never collides with the unique constraint
+        # for other customers who also didn't provide an email.
+        email = validated_data.get('email') or None
+        validated_data['email'] = email
+
+        if not validated_data.get('username'):
+            if email:
+                validated_data['username'] = email
+            else:
+                phone_digits = validated_data['phone_number'].lstrip('+')
+                validated_data['username'] = f"customer-{phone_digits}-{uuid.uuid4().hex[:6]}"
+
         return CustomUser.objects.create_user(password=None, **validated_data)
     
 
