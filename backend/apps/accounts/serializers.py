@@ -86,3 +86,39 @@ class CustomerSerializer(serializers.ModelSerializer):
         # which is correct: they're a record, not an account holder here).
         validated_data.setdefault('username', validated_data['email'])
         return CustomUser.objects.create_user(password=None, **validated_data)
+    
+
+class UserManagementSerializer(serializers.ModelSerializer):
+    """
+    Admin-only read/write serializer for UserManagementView.
+
+    role and is_active are writable here — this is the one place in the
+    whole app where that's true for non-customer accounts. Everything else
+    (first/last name, email, username, phone) stays read-only: this page is
+    for role/active management, not profile editing.
+    """
+    class Meta:
+        model = CustomUser
+        fields = [
+            'id', 'email', 'username', 'first_name', 'last_name',
+            'phone_number', 'role', 'is_staff', 'is_active', 'date_joined',
+        ]
+        read_only_fields = [
+            'id', 'email', 'username', 'first_name', 'last_name',
+            'phone_number', 'date_joined',
+        ]
+
+    def validate_role(self, value):
+        valid_roles = dict(CustomUser.ROLE_CHOICES)
+        if value not in valid_roles:
+            raise serializers.ValidationError(f"Invalid role: {value}")
+        return value
+
+    def update(self, instance, validated_data):
+        # Keep is_staff in sync with role: admin/manager get staff (Django
+        # admin) access, staff/customer don't. Mirrors the convention already
+        # used in conftest.py fixtures and CustomUserManager.create_superuser.
+        role = validated_data.get('role', instance.role)
+        if 'role' in validated_data:
+            validated_data['is_staff'] = role in ('admin', 'manager')
+        return super().update(instance, validated_data)
