@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Plus, Search, Pencil, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react"
 import { productsApi } from "@/api/products"
+import { Link } from "react-router-dom"
 import type { Product, Category } from "@/types"
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
@@ -441,7 +442,14 @@ export default function ProductsPage() {
             ) : (
               products.map((product) => (
                 <tr key={product.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3 font-medium">{product.name}</td>
+                  <td className="px-4 py-3 font-medium">
+                    <Link
+                      to={`/products/${product.id}`}
+                      className="hover:underline hover:text-foreground transition-colors"
+                    >
+                      {product.name}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{product.sku}</td>
                   <td className="px-4 py-3 text-muted-foreground">{product.category_name}</td>
                   <td className="px-4 py-3 text-right tabular-nums">${Number(product.price).toFixed(2)}</td>

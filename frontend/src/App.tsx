@@ -8,6 +8,7 @@ import LoginPage from "@/pages/auth/LoginPage"
 
 const DashboardPage       = lazy(() => import("@/pages/dashboard/DashboardPage"))
 const ProductsPage        = lazy(() => import("@/pages/products/ProductsPage"))
+const ProductDetailPage   = lazy(() => import("@/pages/products/ProductDetailPage"))
 const CategoriesPage      = lazy(() => import("@/pages/categories/CategoriesPage"))
 const WarehousesPage      = lazy(() => import("@/pages/warehouses/WarehousesPage"))
 const SuppliersPage       = lazy(() => import("@/pages/suppliers/SuppliersPage"))
@@ -40,6 +41,7 @@ export default function App() {
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard"       element={<DashboardPage />} />
             <Route path="/products"        element={<ProductsPage />} />
+            <Route path="/products/:id"    element={<ProductDetailPage />} />
             <Route path="/categories"      element={<CategoriesPage />} />
             <Route path="/warehouses"      element={<WarehousesPage />} />
             <Route path="/suppliers"       element={<SuppliersPage />} />
@@ -60,4 +62,4 @@ export default function App() {
       </Routes>
     </Suspense>
   )
-} 
+}
