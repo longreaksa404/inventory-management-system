@@ -2,6 +2,7 @@
 import { lazy, Suspense } from "react"
 import { Routes, Route, Navigate } from "react-router-dom"
 import ProtectedRoute from "@/routes/ProtectedRoute"
+import AdminRoute from "@/routes/AdminRoute"
 import PageLayout from "@/components/layout/PageLayout"
 import LoginPage from "@/pages/auth/LoginPage"
 
@@ -16,7 +17,7 @@ const SaleOrdersPage      = lazy(() => import("@/pages/orders/SaleOrdersPage"))
 const AlertsPage          = lazy(() => import("@/pages/alerts/AlertsPage"))
 const ReportsPage         = lazy(() => import("@/pages/reports/ReportsPage"))
 const CustomersPage       = lazy(() => import("@/pages/customers/CustomersPage"))
-
+const UsersPage           = lazy(() => import("@/pages/users/UsersPage"))
 
 function PageSpinner() {
   return (
@@ -37,17 +38,20 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<PageLayout />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard"      element={<DashboardPage />} />
-            <Route path="/products"       element={<ProductsPage />} />
-            <Route path="/categories"     element={<CategoriesPage />} />
-            <Route path="/warehouses"     element={<WarehousesPage />} />
-            <Route path="/suppliers"      element={<SuppliersPage />} />
-            <Route path="/stock"          element={<StockPage />} />
+            <Route path="/dashboard"       element={<DashboardPage />} />
+            <Route path="/products"        element={<ProductsPage />} />
+            <Route path="/categories"      element={<CategoriesPage />} />
+            <Route path="/warehouses"      element={<WarehousesPage />} />
+            <Route path="/suppliers"       element={<SuppliersPage />} />
+            <Route path="/stock"           element={<StockPage />} />
             <Route path="/orders/purchase" element={<PurchaseOrdersPage />} />
-            <Route path="/orders/sales"   element={<SaleOrdersPage />} />
-            <Route path="/alerts"         element={<AlertsPage />} />
-            <Route path="/reports"        element={<ReportsPage />} />
-            <Route path="/customers"      element={<CustomersPage />} />
+            <Route path="/orders/sales"    element={<SaleOrdersPage />} />
+            <Route path="/alerts"          element={<AlertsPage />} />
+            <Route path="/reports"         element={<ReportsPage />} />
+            <Route path="/customers"       element={<CustomersPage />} />
+            <Route element={<AdminRoute />}>
+              <Route path="/users"         element={<UsersPage />} />
+            </Route>
           </Route>
         </Route>
 

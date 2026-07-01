@@ -13,6 +13,7 @@ export interface User {
   phone_number: string
   role: UserRole
   is_staff: boolean
+  is_active: boolean
   date_joined: string
 }
 

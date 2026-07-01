@@ -49,7 +49,7 @@ class UserListSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = [
             'id', 'email', 'username', 'first_name', 'last_name',
-            'phone_number', 'role', 'is_staff', 'date_joined',
+            'phone_number', 'role', 'is_staff', 'is_active', 'date_joined',
         ]
         read_only_fields = fields
 

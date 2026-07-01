@@ -26,6 +26,7 @@ import {
   LogOut,
 } from "lucide-react"
 import { UserCircle } from "lucide-react"
+import { ShieldCheck } from "lucide-react"
 
 
 // ─── Nav item definition ──────────────────────────────────────────────────────
@@ -66,6 +67,12 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "Customers", path: "/customers", icon: UserCircle },
       { label: "Purchase Orders", path: "/orders/purchase", icon: ShoppingCart },
       { label: "Sale Orders", path: "/orders/sales", icon: Receipt },
+      {
+        label: "User Management",
+        path: "/users",
+        icon: ShieldCheck,
+        allowedRoles: ["admin"],
+      },
     ],
   },
   {
