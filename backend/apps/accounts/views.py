@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from rest_framework import generics, permissions, status, filters
+from rest_framework.permissions import IsAdminUser
+from .serializers import UserManagementSerializer
 
 from .models import CustomUser
 from .serializers import RegistrationSerializer, UserListSerializer, ChangePasswordSerializer, CustomerSerializer
@@ -98,3 +100,37 @@ class CustomerDetailView(generics.RetrieveUpdateAPIView):
 
     def get_queryset(self):
         return CustomUser.objects.filter(role='customer')
+
+
+class UserManagementView(generics.RetrieveUpdateAPIView):
+    """
+    GET/PATCH /api/v1/accounts/<id>/
+ 
+    Admin-only endpoint for Tier 4 "User management" page:
+      - change a user's role
+      - toggle is_active
+ 
+    Distinct from CustomerListCreateView/CustomerDetailView, which only ever
+    touch role='customer' accounts. This endpoint operates on ANY CustomUser
+    (admin, manager, staff, customer) and is the only place role/is_active
+    can be changed for non-customer accounts.
+ 
+    No DELETE here either — same PROTECT-FK reasoning as customers
+    (orders.created_by, stock_transactions.performed_by, etc. all PROTECT
+    against the user FK). Deactivate via is_active, never hard-delete.
+    """
+    queryset = CustomUser.objects.all()
+    serializer_class = UserManagementSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+ 
+    def get_object(self):
+        obj = super().get_object()
+        # Guard rail: an admin can't lock themselves out by demoting/deactivating
+        # their own account through this endpoint. Force them to use another
+        # admin account for that — avoids a support-ticket footgun.
+        if self.request.method in ("PUT", "PATCH") and obj.pk == self.request.user.pk:
+            raise PermissionDenied(
+                "You cannot change your own role or active status here. "
+                "Ask another admin to make this change."
+            )
+        return obj
