@@ -1,4 +1,5 @@
 # apps/suppliers/views.py
+from backend.apps.suppliers.permissions import SupplierPermission
 from rest_framework import generics, permissions
 
 from apps.inventory.views import SearchFilterOrderingMixin
@@ -13,7 +14,7 @@ class SupplierListCreateView(SearchFilterOrderingMixin, generics.ListCreateAPIVi
     # Mixin must come first so its attributes win.
     queryset = Supplier.objects.all()
     serializer_class = SupplierSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (SupplierPermission,)
 
     filterset_fields = ['name', 'email']
     search_fields = ['name', 'contact_name', 'email', 'phone']
@@ -24,4 +25,4 @@ class SupplierListCreateView(SearchFilterOrderingMixin, generics.ListCreateAPIVi
 class SupplierDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Supplier.objects.all()
     serializer_class = SupplierSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (SupplierPermission,)
