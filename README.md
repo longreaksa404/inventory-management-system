@@ -15,6 +15,7 @@ Built as a portfolio project to demonstrate production-level fullstack engineeri
 | **Swagger UI** | https://inventory-management-system-uet9.onrender.com/swagger/ |
 | **Redoc** | https://inventory-management-system-uet9.onrender.com/redoc/ |
 | **Admin panel** | https://inventory-management-system-uet9.onrender.com/admin/ |
+| **Source** | https://github.com/longreaksa404/inventory-management-system |
 
 > ⚡ Hosted on Render's free tier — the backend sleeps after inactivity and can take 30–60s to wake up on first load.
 
@@ -46,6 +47,16 @@ Built as a portfolio project to demonstrate production-level fullstack engineeri
 - Backend → Render (Docker/Gunicorn)
 - Database → Supabase PostgreSQL (session pooler, IPv4-safe)
 - Redis → Upstash (Celery broker/result backend)
+
+---
+
+## 🔑 API Basics
+
+- **Auth:** `POST /api/v1/accounts/login/` → `{access, refresh}`. Send `Authorization: Bearer {access_token}` on every subsequent request.
+- **Token lifetimes:** access token 2 hours, refresh token 7 days — handled transparently by the frontend's Axios interceptor.
+- **Roles:** lowercase string values — `"admin"`, `"manager"`, `"staff"`, `"customer"`.
+- **Pagination:** every list endpoint returns `{count, next, previous, results[]}`.
+- **Stock mutations:** Stock In/Out/Adjust endpoints require a `warehouse` ID in the request body — without it, the audit `StockTransaction` record is silently skipped.
 
 ---
 
