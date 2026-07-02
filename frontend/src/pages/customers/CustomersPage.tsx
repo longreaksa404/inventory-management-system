@@ -87,10 +87,10 @@ export function CustomerForm({
     resolver: zodResolver(customerSchema),
     defaultValues: editing
       ? {
-          first_name: editing.first_name,
-          last_name: editing.last_name,
-          email: editing.email,
-          phone_number: editing.phone_number,
+          first_name: editing.first_name ?? "",
+          last_name: editing.last_name ?? "",
+          email: editing.email ?? "",
+          phone_number: editing.phone_number ?? "",
         }
       : { first_name: "", last_name: "", email: "", phone_number: "" },
   })
