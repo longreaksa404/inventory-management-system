@@ -15,7 +15,7 @@ class SaleOrderPermission(BasePermission):
         if request.method in SAFE_METHODS:
             return has_perm(request.user, "orders.view_saleorder")
         if view.action == "create":
-            return has_perm(request.user, "orders.create_saleorder")
+            return has_perm(request.user, "orders.add_saleorder")
         return True
 
     def has_object_permission(self, request, view, obj):
@@ -37,7 +37,7 @@ class PurchaseOrderPermission(BasePermission):
         if request.method in SAFE_METHODS:
             return has_perm(request.user, "orders.view_purchaseorder")
         if view.action == "create":
-            return has_perm(request.user, "orders.create_purchaseorder")
+            return has_perm(request.user, "orders.add_purchaseorder")
         return True
 
     def has_object_permission(self, request, view, obj):

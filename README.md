@@ -17,10 +17,6 @@ Built as a portfolio project to demonstrate production-level fullstack engineeri
 | **Admin panel** | https://inventory-management-system-uet9.onrender.com/admin/ |
 | **Source** | https://github.com/longreaksa404/inventory-management-system |
 
-> ⚡ Hosted on Render's free tier — the backend sleeps after inactivity and can take 30–60s to wake up on first load.
-
-**Demo login** — *(fill in a read-only demo account here before the interview, e.g. `demo@example.com` / a throwaway password)*
-
 ---
 
 ## 🛠 Tech Stack
