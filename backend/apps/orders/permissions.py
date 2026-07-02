@@ -45,8 +45,6 @@ class PurchaseOrderPermission(BasePermission):
             return has_perm(request.user, "orders.view_purchaseorder")
         if view.action in ["update", "partial_update", "destroy"]:
             return has_perm(request.user, "orders.change_purchaseorder")
-        # FIX: was "orders.confirm_purchase order" — space in codename is a typo,
-        # Django permission codenames never contain spaces.
         if view.action == "confirm":
             return has_perm(request.user, "orders.confirm_purchase_order")
         if view.action == "receive":
