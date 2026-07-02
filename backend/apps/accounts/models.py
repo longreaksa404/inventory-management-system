@@ -89,5 +89,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     objects = CustomUserManager()
 
+    class Meta:
+        permissions = [
+            ("manage_customers", "Can edit or deactivate customer records"),
+        ]
+
     def __str__(self):
         return f"{self.username} ({self.role})"

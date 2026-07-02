@@ -61,6 +61,9 @@ class TransactionHistory(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        permissions = [
+            ("view_reports", "Can view reports"),
+        ]
 
     def __str__(self):
         return f"{self.transaction_type} #{self.order_id} - {self.status}"
