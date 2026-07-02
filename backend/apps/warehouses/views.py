@@ -1,3 +1,4 @@
+from backend.apps.warehouses.permissions import WarehousePermission
 from rest_framework import generics, permissions
 
 from .models import Warehouse
