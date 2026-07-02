@@ -296,7 +296,7 @@ function LowStockSection() {
             const barClass = item.quantity === 0 ? "bg-red-500" : ratio <= 0.5 ? "bg-red-400" : "bg-amber-400"
             return (
               <div key={i} className="flex items-center gap-3">
-                <span className="w-28 truncate text-xs text-muted-foreground">Product #{item.product}</span>
+                <span className="w-28 truncate text-xs text-muted-foreground">{item.product_name}</span>
                 <div className="flex-1 rounded-full bg-muted h-1.5 overflow-hidden">
                   <div className={`h-full rounded-full ${barClass}`} style={{ width: `${pct}%` }} />
                 </div>
