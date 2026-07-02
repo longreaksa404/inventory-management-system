@@ -1,12 +1,12 @@
 # ▶️ Next Steps — Start Here
 
-## What Was Done Last Session (Session 17)
+## What Was Done Last Session (Session 18)
 
-- ✅ **Ran the Customer test suite against the live repo** (as instructed at the end of Session 16) — **68 passed, 5 failed**, all 5 failures from the same root cause.
-- 🐛 **Found and fixed a real production bug, not a test bug.** `CustomUserManager.create_user()` (in `apps/accounts/models.py`) unconditionally requires a `phone_number` for every non-superuser account. `CustomerSerializer` treats `phone_number` as optional (model field is `blank=True, default=''`), and customer records never log in, so there was never a reason to enforce a phone for them — but the manager's guard predates the Customer feature (Session 15) and was never updated to account for it. Result: **any customer created without a phone number 500'd** instead of either succeeding or returning a clean 400. This would have hit real users immediately — the "+ New customer" quick-create form in `SaleOrdersPage.tsx` doesn't require a phone number, so any staff member quick-adding a customer without one would have silently failed with an Internal Server Error.
-  - **Fix:** `create_user()` now also exempts `role == 'customer'` from the phone requirement, alongside the existing `is_superuser` exemption. Patch delivered as `backend/apps/accounts/models_create_user_patch.py` — paste the `create_user` method over the existing one in `apps/accounts/models.py` inside `CustomUserManager`. No other part of the file changes.
-  - **Failed tests, now expected to pass once the patch is applied:** `test_admin_can_create_customer`, `test_role_cannot_be_overridden_from_input`, `test_username_falls_back_to_email_when_not_provided`, `test_username_explicit_value_is_respected`, `test_created_customer_has_unusable_password`. All five omitted `phone_number` in the request body, which is exactly the legitimate path the quick-create form uses.
-- ⚠️ **Not done yet:** applying the patch to the real `apps/accounts/models.py` and re-running the suite to confirm all 73 tests pass. Also still outstanding: the manual browser verification of the Sale Order quick-create-customer modal flow (carried over from Session 15/16) — this bug makes that check even more important, since it's likely the exact path that would have surfaced this in the browser as a 500 toast.
+- ✅ **Full test suite: 83/83 passed.** Confirmed the `phone_number` patch (exempting `role == 'customer'`) was already applied in `apps/accounts/models.py`. Customer tests 14/14, user management tests 7/7, full suite clean.
+- ✅ **Tier 4 Item 1 — User Management page (backend + frontend + tests).** Built `UserManagementView` (admin-only `GET/PATCH /api/v1/accounts/<id>/`), `UserManagementSerializer` (role + is_active writable, everything else read-only, is_staff auto-synced from role), `AdminRoute` guard, `UsersPage.tsx` (inline role dropdown, activate/deactivate toggle, self-protection shield, filter by role), `userManagement.ts` API layer, `test_api_user_management.py` (7 tests). URL wired at `apps/accounts/urls.py`.
+- ✅ **Tier 4 Item 2 — Product detail page (frontend).** Built `ProductDetailPage.tsx` at `/products/:id` — product info card with stock health bar, full stock transaction history table with pagination. `ProductsPage.tsx` product name cell becomes a `<Link>` to the detail page.
+- 🐛 **Found `is_active` gap while building UsersPage** — `UserListSerializer` and the `User` TypeScript type both omitted `is_active`, so the active/inactive badge and toggle button on UsersPage would have been broken. Fix: add `'is_active'` to `UserListSerializer.Meta.fields` in `apps/accounts/serializers.py`, and add `is_active: boolean` to the `User` interface in `frontend/src/types/index.ts`. Documented in `users_view.diff` — **not yet confirmed applied; verify before deploying**.
+- ✅ **App.tsx updated** — now includes lazy imports and routes for both `UsersPage` (`/users`, inside `<AdminRoute>`) and `ProductDetailPage` (`/products/:id`).
 
 ---
 
@@ -23,69 +23,64 @@
 
 ## Immediate Next Actions (in priority order)
 
-### 1. Apply the phone_number patch (blocking everything else)
-- Open `apps/accounts/models.py`, find `CustomUserManager.create_user()`, replace it with the version in `backend/apps/accounts/models_create_user_patch.py`.
-- Re-run: `pytest tests/api/test_api_customers.py -v` — expect 14/14 passing in that file, 73/73 in the full suite.
-- No migration needed — this is pure Python logic in the manager, not a schema change.
+### 1. Apply the is_active fix (small, blocking UsersPage correctness)
+In `apps/accounts/serializers.py` — `UserListSerializer.Meta.fields`:
+```python
+fields = [
+    'id', 'email', 'username', 'first_name', 'last_name',
+    'phone_number', 'role', 'is_staff', 'is_active', 'date_joined',
+]
+read_only_fields = fields
+```
+In `frontend/src/types/index.ts` — `User` interface:
+```ts
+is_active: boolean   // add after is_staff
+```
+No migration needed. Re-run `pytest -v` after the backend change to confirm still 83/83.
 
-### 2. Manual browser verification (carried over from Session 15/16, now higher priority)
-- Open the Sale Order form → "+ New customer" → submit **without** a phone number → confirm it now succeeds (pre-patch this would have 500'd) → confirm the modal closes, the new customer is auto-selected via `setValue("customer", customer.id)`, and the sale order submits end-to-end.
-- Also test the same flow **with** a phone number to confirm no regression.
+### 2. Manual browser verification (carried over from Session 15, still outstanding)
+- Open Sale Order form → `+` next to customer dropdown → create customer **without** phone number → confirm 201, modal closes, customer auto-selected, order submits end-to-end.
+- Repeat **with** phone number to confirm no regression.
+- Also verify UsersPage: log in as admin → `/users` → change a role → confirm badge updates → toggle deactivate → confirm status changes.
 
-### Tier 1 — ✅ DONE (Session 13)
-Low stock alert bug fully diagnosed and fixed.
+### 3. Tier 4 Item 3 — Dark/light mode toggle (last Tier 4 item, unblocked)
+- CSS vars for both themes already defined in `frontend/src/index.css` (`:root` and `.dark`).
+- Add a toggle button in the Sidebar footer (below the user avatar block).
+- Toggle adds/removes `.dark` class on `<html>` element.
+- Persist preference in `localStorage` key `theme`.
+- Load persisted preference on app boot (in `main.tsx` or a `useTheme` hook).
+- No backend changes needed.
 
-### Tier 2 — ✅ DONE (Session 14–15)
-Sale Order form UX: price auto-fill verified correct; customer dropdown changed to name + phone.
+### 4. ReportsPage LowStockSection — product name labels (one-liner, low priority)
+Labels currently show `Product #N` instead of product name because `LowStockReportView` returns `product_name` but `LowStockSection` in `ReportsPage.tsx` uses `item.product` (the ID). Change `item.product` to `item.product_name` in the bar label. One line.
 
-### Tier 3 — ✅ DONE (Session 14)
-Async polling after Ship/Receive (`useOrderStatusPolling` hook, used in both order pages).
+### 5. README portfolio polish (no decisions needed, do anytime)
+- Add screenshots of Dashboard, Products, Orders pages
+- Add live demo URLs (frontend Vercel + backend Render + Swagger)
+- Add tech stack badges
+- Clean up local dev section
 
-### Customer management — ✅ DONE (Session 15), test coverage ✅ DONE (Session 16), phone_number bug found + fix delivered (Session 17, not yet applied)
+---
 
-### Tier 4 — New pages (start once steps 1–2 above are confirmed)
-**1. User management page**
-- Backend: add `PATCH /api/v1/accounts/{id}/` accepting `{role}` and/or `{is_active}`, admin-only permission
-- Frontend: new page at `/users`, admin-only route guard, hidden from sidebar for non-admins
-- Table: name, email, role badge, active/inactive toggle, date joined
-- Search/filter by name or email
-- Not started yet
-- Note: this is a *different* endpoint/page from the existing Customer management — `/accounts/{id}/` (any role) vs `/accounts/customers/{id}/` (customers only). Don't conflate them.
+## Blocked on Your Decisions
 
-**2. Product detail page**
-- New route `/products/:id`
-- Shows full product info + stock transaction history (reuse `productsApi.getStockHistory`)
-- Linked from `ProductsPage.tsx` table rows
-- Not started yet
-
-**3. Dark/light mode toggle**
-- CSS vars for both themes already exist in `index.css` (`.dark` class is defined)
-- Add a toggle button (sidebar footer is a natural spot) + persist preference via localStorage (real app, not an artifact — localStorage is fine here)
-- Toggle adds/removes `.dark` class on `<html>` or root element
-- Not started yet
-
-### Tier 5 — BLOCKED on your decisions
-**Product picture** — ⏳ waiting on: Cloudinary (real hosting, needs your API key) vs base64-in-DB (zero setup, slower)
-**Celery Beat in production** — ⏳ waiting on: deploy a second Render worker (cost/complexity) vs leave Beat code-only, not running in production
-**Uptime Robot** — no code needed, you can do this anytime: create a free monitor at uptimerobot.com pointed at `https://inventory-management-system-uet9.onrender.com/api/`, 5 min interval
-
-### Tier 6 — Deferred to roadmap (documented in PROJECT_SCOPE.md, not built)
-- Per-warehouse stock tracking
-- Pricing events / discount engine (seasonal %, bulk discount rules)
+| Item | Decision needed |
+|---|---|
+| Product picture | Cloudinary (real hosting, needs API key) vs base64-in-DB (zero setup, slower) |
+| Celery Beat in production | Second Render worker (cost/complexity) vs leave code-only, not running |
+| Uptime Robot | No code — manual setup at uptimerobot.com when ready |
 
 ---
 
 ## Known Issues (carried over)
 
-| Issue | Location | Notes |
+| Issue | Location | Status |
 |---|---|---|
-| Low stock alert not working | — | ✅ FIXED Session 13 |
-| Warehouse column blank on Alerts/Dashboard low-stock views | `AlertsPage.tsx`, `DashboardPage.tsx` | Known side-effect of Session 13 fix, explicitly deferred per user decision |
-| ReportsPage bar labels show `Product #N` | `ReportsPage.tsx` `LowStockSection` | Still open — API now returns `product_name`, one-line fix |
-| Polling hook has no unmount cleanup | `frontend/src/hooks/useOrderStatusPolling.ts` | Low-risk, optional follow-up |
-| Customer endpoints paginated at 50 | `apps/accounts/views.py` `CustomerListCreateView` | Fine now, flagged for later if customer count grows past one page |
-| **Customer creation without a phone number 500s** | `apps/accounts/models.py` `CustomUserManager.create_user()` | **NEW, found Session 17 via the test suite — fix written (`models_create_user_patch.py`) but not yet applied to the live repo. This is a real bug affecting the quick-create-customer flow used from the Sale Order form, not just a test issue.** |
-| Quick-create modal flow not yet manually verified end-to-end in browser | `SaleOrdersPage.tsx` | Carried over from Session 15/16 — higher priority now given the bug above |
+| Warehouse column blank on Alerts/Dashboard low-stock | `AlertsPage.tsx`, `DashboardPage.tsx` | Deliberately deferred — do NOT fix unless asked |
+| ReportsPage bar labels show `Product #N` | `ReportsPage.tsx` `LowStockSection` | Open — one-line fix, low priority |
+| Polling hook has no unmount cleanup | `useOrderStatusPolling.ts` | Low-risk, optional follow-up |
+| **`is_active` missing from `UserListSerializer` and `User` type** | `serializers.py`, `types/index.ts` | **Fix required before UsersPage works correctly — see Step 1 above** |
+| Quick-create modal flow not manually verified in browser | `SaleOrdersPage.tsx` | Carried over from Session 15 — see Step 2 above |
 
 ---
 
@@ -103,10 +98,8 @@ Paste this at the start of the next conversation:
 >
 > See docs/NEXT_STEPS.md, docs/PROJECT_HANDOFF.md, and docs/PROJECT_PLAN.md (Phase 6) for full context.
 >
-> Session 17 just completed: ran the new `test_api_customers.py` suite against the real repo — 68 passed, 5 failed, all five from the same root cause. Found a real bug: `CustomUserManager.create_user()` requires a `phone_number` for every non-superuser account, but `CustomerSerializer` treats phone as optional and customer accounts never log in, so creating a customer without a phone number 500s. This is a real production bug, not just a test gap — the Sale Order "+ New customer" quick-create form doesn't require a phone, so this would hit real users. Fix delivered as `backend/apps/accounts/models_create_user_patch.py` (exempt `role == 'customer'` from the phone requirement, same way superusers are already exempt) but not yet applied to the actual repo file.
+> Session 18 just completed: 83/83 tests passing. Built Tier 4 Items 1 and 2 — User Management page (backend + frontend + 7 tests, admin-only, inline role dropdown, activate/deactivate, self-protection guard) and Product Detail page (/products/:id, info card + transaction history). Found is_active gap in UserListSerializer and User type — fix documented, not yet applied. Manual browser verification of Sale Order quick-create-customer flow still outstanding.
 >
-> Next task: apply that patch to `apps/accounts/models.py`, re-run the full test suite to confirm 73/73 pass, then do the manual browser check of the Sale Order quick-create-customer flow — test both with and without a phone number, since the bug specifically affects the no-phone path. After both are confirmed, move to Tier 4 in order: user management page (admin-only, different from customer management — don't conflate the two), product detail page, dark mode toggle.
+> Next task: apply the is_active fix (see Step 1 in NEXT_STEPS.md), do the manual browser verification (Step 2), then build the dark/light mode toggle (Tier 4 Item 3, last unblocked item). After that, README polish and the two blocked Tier 5 items (product picture, Celery Beat) pending your decisions on storage backend and worker deployment.
 >
-> Tier 5 items (product picture, Celery Beat in production) are still blocked on my decisions — don't start those until I confirm Cloudinary vs base64, and whether to deploy a second Render worker for Celery Beat.
->
-> Also note: the blank "Warehouse" column on the Low Stock Alerts page is a known, deliberately-deferred side effect of the Tier 1 fix — do not "fix" it unless I explicitly ask.
+> Deliberately deferred (do NOT fix unless I ask): blank warehouse column on Alerts/Dashboard low-stock views.
