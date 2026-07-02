@@ -32,7 +32,8 @@ Complete handoff for continuing development of the IMS backend + React frontend.
 
 ## ✅ Session History
 
-- **Session 18** — **83/83 tests passing (up from 68/73 after Session 17 patch).** Built **Tier 4 Item 1: User Management page** — `UserManagementView` (admin-only `GET/PATCH /api/v1/accounts/<id>/`), `UserManagementSerializer` (role + is_active writable, is_staff auto-synced from role change, all profile fields read-only), `AdminRoute` frontend guard, `UsersPage.tsx` (inline role dropdown, activate/deactivate toggle, self-protection shield icon, filter by role, skeleton loading), `userManagement.ts` API layer, `test_api_user_management.py` (7 tests, all passing). Built **Tier 4 Item 2: Product detail page** — `ProductDetailPage.tsx` at `/products/:id` (product info card with stock health bar + reorder level, paginated stock transaction history table). `ProductsPage.tsx` product name becomes a `<Link>` to the detail page. `App.tsx` updated with both new lazy imports and routes. **Found `is_active` gap** — `UserListSerializer` and the `User` TypeScript type both omit `is_active`; documented fix in `users_view.diff`, not yet applied — must be done before UsersPage active/inactive display works correctly.
+- **Session 19** — Interview-prep session, no application code changed. **Verified** the `is_active` gap flagged in Session 18 was already fixed in the live repo (`UserListSerializer.Meta.fields` includes `is_active`; `User` TS interface includes `is_active: boolean`) — no action needed, closed out. **Rewrote `README.md`** for interview readiness: removed the "Architecture Highlights" deep-dive section and the placeholder "Screenshots" section (owner's explicit call — kept the README leaner, screenshots to be added manually later), added a GitHub source link to the Live Demo table, added a new "API Basics" section (login flow, token lifetimes, lowercase role values, pagination shape, warehouse-required stock mutation rule). Resolved a stale Render URL discrepancy between the old README and the docs — canonical backend URL confirmed as `https://inventory-management-system-uet9.onrender.com`. **Configured an UptimeRobot monitor** (HTTP(s), 5-min interval, email alerts) against `GET /api/` (the DB-free `health_check` view) to prevent the Render free-tier backend from cold-starting during the live interview demo — closes the last open Tier 5 item from `PROJECT_SCOPE.md`. Confirmed (but did not apply) the one-line ReportsPage low-stock label fix — still open, see `docs/NEXT_STEPS.md`.
+- **Session 18** — **83/83 tests passing (up from 68/73 after Session 17 patch).** Built **Tier 4 Item 1: User Management page** — `UserManagementView` (admin-only `GET/PATCH /api/v1/accounts/<id>/`), `UserManagementSerializer` (role + is_active writable, is_staff auto-synced from role change, all profile fields read-only), `AdminRoute` frontend guard, `UsersPage.tsx` (inline role dropdown, activate/deactivate toggle, self-protection shield icon, filter by role, skeleton loading), `userManagement.ts` API layer, `test_api_user_management.py` (7 tests, all passing). Built **Tier 4 Item 2: Product detail page** — `ProductDetailPage.tsx` at `/products/:id` (product info card with stock health bar + reorder level, paginated stock transaction history table). `ProductsPage.tsx` product name becomes a `<Link>` to the detail page. `App.tsx` updated with both new lazy imports and routes. Found (and Session 19 confirmed resolved) an `is_active` gap in `UserListSerializer` and the `User` TypeScript type.
 - **Session 17** — Ran Customer test suite against live repo: 68/73 (5 failures all traced to `CustomUserManager.create_user()` requiring `phone_number` for non-superuser accounts, breaking customer creation without a phone). Fix delivered and applied: `role == 'customer'` now exempts the phone requirement alongside `is_superuser`. Suite confirmed 83/83 after fix applied in Session 18.
 - **Session 16** — Wrote `backend/tests/api/test_api_customers.py` (14 tests).
 - **Session 15** — Customer management feature: backend `CustomerSerializer`/`CustomerListCreateView`/`CustomerDetailView`/`CustomerPermission`; frontend `CustomersPage.tsx` + inline "+ New customer" quick-create in Sale Order form.
@@ -57,6 +58,8 @@ Complete handoff for continuing development of the IMS backend + React frontend.
 
 ```
 inventory-management-system/
+├── README.md                         ✅ Rewritten Session 19 — interview-ready,
+│                                          GitHub link + API Basics section added
 ├── backend/
 │   ├── manage.py                     ✅ default: config.settings.local
 │   ├── apps/
@@ -64,7 +67,7 @@ inventory-management-system/
 │   │   │   ├── models.py             ✅ phone_number fix applied (role='customer' exempt)
 │   │   │   ├── views.py              ✅ + CustomerListCreateView, CustomerDetailView, UserManagementView
 │   │   │   ├── serializers.py        ✅ + CustomerSerializer, UserManagementSerializer
-│   │   │   │                            ⚠️ UserListSerializer missing is_active — fix pending
+│   │   │   │                            ✅ UserListSerializer.is_active confirmed present (Session 19)
 │   │   │   ├── permissions.py        ✅ CustomerPermission
 │   │   │   └── urls.py               ✅ + /customers/, /customers/<id>/, /<id>/
 │   │   ├── inventory/                ✅
@@ -79,7 +82,7 @@ inventory-management-system/
 │       │   ├── test_api_permissions.py    ✅ 1 test
 │       │   ├── test_api_reports.py        ✅ 3 tests
 │       │   ├── test_api_stock.py          ✅ 7 tests
-│       │   └── test_api_user_management.py ✅ 7 tests (NEW Session 18)
+│       │   └── test_api_user_management.py ✅ 7 tests
 │       └── domain/                        ✅ 47 tests
 └── frontend/
     ├── vercel.json                   ✅ SPA rewrite rule
@@ -92,7 +95,7 @@ inventory-management-system/
         │   ├── products.ts           ✅
         │   ├── reports.ts            ✅
         │   ├── suppliers.ts          ✅
-        │   ├── userManagement.ts     ✅ NEW Session 18
+        │   ├── userManagement.ts     ✅
         │   └── warehouses.ts         ✅
         ├── components/layout/        ✅ Sidebar, Navbar, PageLayout
         ├── hooks/
@@ -107,18 +110,18 @@ inventory-management-system/
         │   ├── orders/               ✅ both purchase + sale, async polling
         │   ├── products/
         │   │   ├── ProductsPage.tsx  ✅ product name → Link to detail page
-        │   │   └── ProductDetailPage.tsx ✅ NEW Session 18 — /products/:id
-        │   ├── reports/              ✅ (LowStockSection labels still Product #N — minor)
+        │   │   └── ProductDetailPage.tsx ✅ — /products/:id
+        │   ├── reports/              ⚠️ LowStockSection labels still Product #N — fix identified, not applied (Session 19)
         │   ├── stock/                ✅
         │   ├── suppliers/            ✅
         │   ├── users/
-        │   │   └── UsersPage.tsx     ✅ NEW Session 18 — admin-only /users
+        │   │   └── UsersPage.tsx     ✅ admin-only /users
         │   └── warehouses/           ✅
         ├── routes/
-        │   ├── AdminRoute.tsx        ✅ NEW Session 18
+        │   ├── AdminRoute.tsx        ✅
         │   └── ProtectedRoute.tsx    ✅
         ├── stores/authStore.tsx      ✅
-        └── types/index.ts            ⚠️ User interface missing is_active — fix pending
+        └── types/index.ts            ✅ User.is_active confirmed present (Session 19)
 ```
 
 ---
@@ -130,17 +133,17 @@ inventory-management-system/
 | Login | ✅ Done | |
 | Dashboard | ✅ Done | Low stock warehouse name blank — deliberately deferred |
 | Products | ✅ Done | Name cells now link to detail page |
-| Product Detail | ✅ Done (Session 18) | `/products/:id`, info card + transaction history |
+| Product Detail | ✅ Done | `/products/:id`, info card + transaction history |
 | Categories | ✅ Done | |
 | Warehouses | ✅ Done | |
 | Suppliers | ✅ Done | |
-| Customers | ✅ Done (Session 15) | Phone bug fixed Session 17/18 |
+| Customers | ✅ Done | Phone bug fixed Session 17/18 |
 | Stock Transactions | ✅ Done | |
 | Purchase Orders | ✅ Done | Async polling on Receive |
 | Sale Orders | ✅ Done | Async polling on Ship; quick-create customer (browser verify still outstanding) |
 | Low Stock Alerts | ✅ Done | Warehouse column blank — deliberately deferred |
-| Reports | ✅ Done | LowStockSection labels show Product #N — minor, one-line fix |
-| User Management | ✅ Done (Session 18) | Admin-only; inline role dropdown; activate/deactivate; self-protection |
+| Reports | ⚠️ Open item | LowStockSection labels show `Product #N` — fix identified Session 19, not yet applied |
+| User Management | ✅ Done | Admin-only; inline role dropdown; activate/deactivate; self-protection |
 | Dark/light mode | 🆕 Tier 4 Item 3 — next to build | CSS vars already defined |
 
 ---
@@ -199,6 +202,8 @@ const onSubmit = handleSubmit((values) => { myMutation.mutate(values) })
 | Self-protection guard | Backend: `PermissionDenied` if `obj.pk == request.user.pk` on PATCH; Frontend: show shield icon, hide controls |
 | Backend "low stock" | Always `quantity__lte=F('reorder_level')` against `Product.quantity` directly |
 | LowStockAlert writes | Always `update_or_create`, never `get_or_create` |
+| Uptime monitoring | External UptimeRobot HTTP(s) monitor against `GET /api/` (health_check view, no DB hit), 5-min interval — keeps Render free-tier backend warm (Session 19) |
+| README structure | No "Architecture Highlights" deep-dive or unfilled "Screenshots" placeholder — owner prefers a leaner README; deep technical explanations live in `docs/` and get discussed live in the interview instead (Session 19 decision) |
 
 ---
 
@@ -227,13 +232,16 @@ pytest tests/api/test_api_customers.py -v          # 14 tests
 
 | Issue | Location | Priority |
 |---|---|---|
-| `is_active` missing from `UserListSerializer` and `User` type | `serializers.py`, `types/index.ts` | **HIGH — fix before deploying UsersPage** |
+| ReportsPage `LowStockSection` shows `Product #N` | `ReportsPage.tsx` | Low — one-line fix identified Session 19, not yet applied |
 | Quick-create customer modal not manually verified in browser | `SaleOrdersPage.tsx` | HIGH — carried over from Session 15 |
 | Warehouse column blank on Alerts/Dashboard | `AlertsPage.tsx`, `DashboardPage.tsx` | Deliberately deferred — do NOT fix unless asked |
-| ReportsPage `LowStockSection` shows `Product #N` | `ReportsPage.tsx` | Low — one-line fix |
 | `useOrderStatusPolling` has no unmount cleanup | `useOrderStatusPolling.ts` | Low risk |
 | Product picture storage | — | Blocked on Cloudinary vs base64 decision |
 | Celery Beat in production | — | Blocked on second worker vs code-only decision |
+| README needs real screenshots + demo login | `README.md` | Owner adding manually before interview |
+
+*(`is_active` missing from `UserListSerializer`/`User` type — removed from this table. Verified already present in Session 19; no fix was needed.)*
+*(Uptime Robot monitor — removed from this table. Configured in Session 19, pending owner confirmation of "Up" status.)*
 
 ---
 
