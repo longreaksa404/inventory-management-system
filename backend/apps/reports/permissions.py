@@ -13,11 +13,11 @@ class ReportPermission(BasePermission):
 
     def has_permission(self, request, view):
         if request.method in SAFE_METHODS:
-            return has_perm(request.user, "reports.view_report")
+            return has_perm(request.user, "reports.view_reports")
         if request.method == "POST":
-            return has_perm(request.user, "reports.add_report")
+            return has_perm(request.user, "reports.add_reports")
         if request.method in ["PUT", "PATCH"]:
-            return has_perm(request.user, "reports.change_report")
+            return has_perm(request.user, "reports.change_reports")
         if request.method == "DELETE":
-            return has_perm(request.user, "reports.delete_report")
+            return has_perm(request.user, "reports.delete_reports")
         return False
