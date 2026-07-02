@@ -22,16 +22,6 @@ Built as a portfolio project to demonstrate production-level fullstack engineeri
 
 ---
 
-## 📸 Screenshots
-
-*(add screenshots here — Dashboard, Products, Sale Order lifecycle, Reports)*
-
-| Dashboard | Sale Orders | Reports |
-|---|---|---|
-| _screenshot_ | _screenshot_ | _screenshot_ |
-
----
-
 ## 🛠 Tech Stack
 
 **Frontend**
@@ -56,42 +46,6 @@ Built as a portfolio project to demonstrate production-level fullstack engineeri
 - Backend → Render (Docker/Gunicorn)
 - Database → Supabase PostgreSQL (session pooler, IPv4-safe)
 - Redis → Upstash (Celery broker/result backend)
-
----
-
-## 🏗️ Architecture Highlights
-
-### 1. Race-condition-safe stock mutations
-Every operation that changes `Product.quantity` — sale shipping, purchase receiving, manual stock in/out/adjust — runs inside a `transaction.atomic()` block using `select_for_update()` to lock the product row. This prevents two concurrent requests from both reading stale stock, both passing an "enough stock?" check, and double-deducting inventory.
-
-```python
-# apps/orders/models.py — SaleOrder.ship()
-with transaction.atomic():
-    for item in self.items.select_related('product'):
-        product = Product.objects.select_for_update().get(pk=item.product_id)
-        if product.quantity < item.quantity:
-            raise ValidationError(f"Not enough stock for {product.name}")
-        product.quantity -= item.quantity
-        product.save()
-```
-
-### 2. Full audit trail
-Every stock change — whether from a manual Stock In/Out, an admin Adjustment, or an order shipping/receiving — creates a `StockTransaction` record (`IN` / `OUT` / `ADJ`) with `performed_by`, `warehouse`, and `notes`. Nothing mutates `quantity` silently.
-
-### 3. Async order lifecycle (Celery)
-`Ship` and `Receive` actions return `202 Accepted` immediately and hand off to Celery tasks (`process_sales_order_shipping`, `process_purchase_order_receiving`) with automatic retry/backoff. The frontend polls the single-order endpoint every 2s (up to ~15s) via a shared `useOrderStatusPolling` hook until the status changes, then refreshes the list — no manual page refresh needed.
-
-### 4. Role-based access control (RBAC)
-Four roles — `admin`, `manager`, `staff`, `customer` — enforced via custom DRF `BasePermission` classes per app (`inventory/permissions.py`, `orders/permissions.py`, `accounts/permissions.py`), backed by Django's built-in permission/codename system rather than hardcoded role checks scattered through views. The frontend mirrors this with route guards (`ProtectedRoute`, `AdminRoute`) and a single `useAuth()` hook exposing `isAdmin` / `isManager` / `hasRole()` helpers.
-
-### 5. JWT auth with silent refresh
-Axios response interceptor catches `401`s, queues concurrent failed requests, exchanges the refresh token for a new access token, retries the original request — the user never sees a login interruption until the 7-day refresh token itself expires.
-
-### 6. Signal-driven low-stock alerts
-A `post_save` signal on `Product`/order shipping checks `quantity <= reorder_level` (per-product threshold, not a hardcoded magic number) and creates/updates a `LowStockAlert` via `update_or_create` (not `get_or_create` — so an alert's quantity stays current on repeated breaches, not stuck at its first-triggered value). A downstream signal emails an admin and writes a `StockReportEntry` for the Reports page.
-
-### 7. Business-logic-first testing
-80+ pytest tests cover domain logic (stock transactions, order state machines, permission edge cases, signal chains) and API contracts (auth, RBAC per role, reorder-level boundary conditions) — not just "does the endpoint return 200."
 
 ---
 
