@@ -23,10 +23,11 @@ from apps.reports.serializers import (
     PurchaseReportEntrySerializer,
     StockReportEntrySerializer,
 )
+from apps.reports.permissions import ReportPermission
 
 
 class InventoryValueReportView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [ReportPermission]
 
     def get(self, request):
         products = Product.objects.all()
@@ -38,7 +39,7 @@ class InventoryValueReportView(APIView):
 
 
 class LowStockReportView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [ReportPermission]
 
     def get(self, request):
         products = Product.objects.filter(
@@ -61,7 +62,7 @@ class LowStockReportView(APIView):
 
 
 class CategorySummaryReportView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [ReportPermission]
 
     def get(self, request):
         summary = Product.objects.values(
@@ -82,7 +83,7 @@ class CategorySummaryReportView(APIView):
 
 
 class TransactionHistoryReportView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [ReportPermission]
 
     def get(self, request):
         purchases = PurchaseOrder.objects.values(
@@ -116,16 +117,16 @@ class TransactionHistoryReportView(APIView):
 class SalesReportEntryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = SalesReportEntry.objects.all().order_by("-created_at")
     serializer_class = SalesReportEntrySerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [ReportPermission]
 
 
 class PurchaseReportEntryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = PurchaseReportEntry.objects.all().order_by("-created_at")
     serializer_class = PurchaseReportEntrySerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [ReportPermission]
 
 
 class StockReportEntryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = StockReportEntry.objects.all().order_by("-created_at")
     serializer_class = StockReportEntrySerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [ReportPermission]

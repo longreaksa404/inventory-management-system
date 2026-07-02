@@ -1,10 +1,9 @@
-# apps/suppliers/views.py
-from backend.apps.suppliers.permissions import SupplierPermission
 from rest_framework import generics, permissions
 
 from apps.inventory.views import SearchFilterOrderingMixin
 from .models import Supplier
 from .serializers import SupplierSerializer
+from apps.suppliers.permissions import SupplierPermission
 
 
 class SupplierListCreateView(SearchFilterOrderingMixin, generics.ListCreateAPIView):
