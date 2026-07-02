@@ -25,6 +25,8 @@ from apps.inventory.permissions import (
     CategoryPermission,
     StockTransactionPermission,
     LowStockAlertPermission,
+    StockInOutPermission,
+    StockAdjustPermission,
 )
 
 
@@ -165,7 +167,7 @@ def _get_warehouse(request):
 
 
 class StockInView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [StockInOutPermission]
 
     def post(self, request, pk):
         product = get_object_or_404(Product, pk=pk)
@@ -181,7 +183,7 @@ class StockInView(APIView):
 
 
 class StockOutView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [StockInOutPermission]
 
     def post(self, request, pk):
         product = get_object_or_404(Product, pk=pk)
@@ -203,7 +205,7 @@ class StockOutView(APIView):
 
 
 class AdjustStockView(APIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [StockAdjustPermission]
 
     def post(self, request, pk):
         product = get_object_or_404(Product, pk=pk)

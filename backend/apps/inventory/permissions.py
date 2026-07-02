@@ -84,3 +84,13 @@ class ProductActionPermission(BasePermission):
         if view.action == "adjust_stock":
             return has_perm(request.user, "inventory.adjust_stock")
         return True
+    
+
+class StockInOutPermission(BasePermission):
+    def has_permission(self, request, view):
+        return has_perm(request.user, "inventory.create_stock_transaction")
+
+
+class StockAdjustPermission(BasePermission):
+    def has_permission(self, request, view):
+        return has_perm(request.user, "inventory.adjust_stock")
